@@ -1,0 +1,31 @@
+<div class="nav-section-label">Platform</div>
+<a href="{% url 'super_admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_dashboard' %}active{% endif %}">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'hospital_list' %}" class="nav-link {% if 'hospital' in request.resolver_match.url_name %}active{% endif %}">
+  <i class="bi bi-building"></i> Hospitals
+</a>
+<a href="{% url 'plan_list' %}" class="nav-link {% if 'plan' in request.resolver_match.url_name %}active{% endif %}">
+  <i class="bi bi-credit-card"></i> Subscription Plans
+</a>
+<a href="{% url 'subscription_list' %}" class="nav-link {% if 'subscription' in request.resolver_match.url_name %}active{% endif %}">
+  <i class="bi bi-receipt"></i> Hospital Subscriptions
+</a>
+
+<div class="nav-section-label">Compliance & Security</div>
+<a href="{% url 'audit_log_list' %}" class="nav-link {% if 'audit' in request.resolver_match.url_name %}active{% endif %}">
+  <i class="bi bi-shield-check"></i> System Audit Trail
+</a>
+
+<div class="nav-section-label">Users & Access</div>
+<a href="/admin/accounts/user/" class="nav-link">
+  <i class="bi bi-people"></i> All Users (DB)
+</a>
+<a href="/admin/memberships/hospitalmembership/" class="nav-link">
+  <i class="bi bi-person-badge"></i> Memberships (DB)
+</a>
+
+<div class="nav-section-label">System</div>
+<a href="/admin/" class="nav-link" target="_blank">
+  <i class="bi bi-gear"></i> Django Admin Panel <i class="bi bi-box-arrow-up-right ms-auto" style="font-size: 11px;"></i>
+</a>

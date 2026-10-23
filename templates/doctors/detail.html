@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Dr. {{ doctor.user.get_full_name }} — Profile{% endblock %}
+{% block page_title %}Doctor Profile & Schedule{% endblock %}
+
+{% block sidebar_links %}
+{% include "_role_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <h4 class="fw-bold mb-0" style="color:#1a1f36;">Dr. {{ doctor.user.get_full_name }}</h4>
+      {% if doctor.is_active %}
+        <span class="badge bg-success-subtle text-success">Active</span>
+      {% else %}
+        <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
+      {% endif %}
+      <span class="badge bg-primary-subtle text-primary">{{ doctor.department.name }}</span>
+    </div>
+    <p class="text-muted mb-0" style="font-size:14px;">Specialization: <strong>{{ doctor.specialization }}</strong> · Employee Code: <code>{{ doctor.employee_code }}</code></p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'doctor_list' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i> Back
+    </a>
+    {% if request.user.hospital_memberships.first.role == "HOSPITAL_ADMIN" or request.user.is_superuser %}
+    <a href="{% url 'doctor_edit' doctor.pk %}" class="btn btn-primary btn-sm">
+      <i class="bi bi-pencil me-1"></i> Edit Profile
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Profile & Clinical Info -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h6 class="fw-bold mb-0"><i class="bi bi-person-badge text-primary me-2"></i>Doctor Details</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3" style="font-size:14px;">
+          <div class="col-sm-4 text-muted">Email</div>
+          <div class="col-sm-8 fw-semibold">{{ doctor.user.email }}</div>
+
+          <div class="col-sm-4 text-muted">Contact Phone</div>
+          <div class="col-sm-8">{{ doctor.contact_number }}</div>
+
+          <div class="col-sm-4 text-muted">Qualifications</div>
+          <div class="col-sm-8">{{ doctor.qualification }}</div>
+
+          <div class="col-sm-4 text-muted">Experience</div>
+          <div class="col-sm-8">{{ doctor.experience_years }} years</div>
+
+          <div class="col-sm-4 text-muted">Consultation Fee</div>
+          <div class="col-sm-8 fw-bold text-success">{{ hospital.settings.currency|default:'INR' }} {{ doctor.consultation_fee }}</div>
+
+          <div class="col-sm-4 text-muted">Commission</div>
+          <div class="col-sm-8">{{ doctor.op_commission_percentage }}%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Availability Slot -->
+  {% if request.user.hospital_memberships.first.role == "HOSPITAL_ADMIN" or request.user.is_superuser %}
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h6 class="fw-bold mb-0"><i class="bi bi-clock-history text-primary me-2"></i>Add Schedule Slot</h6>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'doctor_availability_add' doctor.pk %}">
+          {% csrf_token %}
+          <div class="row g-2">
+            <div class="col-md-4">
+              <label class="form-label" style="font-size:12px;">Day of Week</label>
+              <select name="weekday" class="form-select form-select-sm">
+                {% for val, label in avail_form.fields.weekday.choices %}
+                  <option value="{{ val }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" style="font-size:12px;">Start Time</label>
+              <input type="time" name="start_time" class="form-control form-control-sm" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" style="font-size:12px;">End Time</label>
+              <input type="time" name="end_time" class="form-control form-control-sm" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" style="font-size:12px;">Effective From</label>
+              <input type="date" name="effective_from" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" style="font-size:12px;">Effective Until</label>
+              <input type="date" name="effective_until" class="form-control form-control-sm">
+            </div>
+            <div class="col-12 mt-3">
+              <button type="submit" class="btn btn-primary btn-sm w-100">
+                <i class="bi bi-plus-circle me-1"></i> Add Availability Slot
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Weekly Schedule Table -->
+<div class="card border-0 shadow-sm" style="border-radius:12px;">
+  <div class="card-header bg-white py-3 border-bottom">
+    <h6 class="fw-bold mb-0"><i class="bi bi-calendar-week text-primary me-2"></i>Weekly Consultation Availability</h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="font-size:14px;">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4">Day</th>
+            <th>Consultation Hours</th>
+            <th>Effective Range</th>
+            <th>Status</th>
+            {% if request.user.hospital_memberships.first.role == "HOSPITAL_ADMIN" or request.user.is_superuser %}
+            <th class="pe-4 text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for slot in availabilities %}
+          <tr>
+            <td class="ps-4 fw-bold">{{ slot.get_weekday_display }}</td>
+            <td>
+              <span class="badge bg-light text-dark border px-2 py-1">
+                <i class="bi bi-clock me-1"></i>{{ slot.start_time|time:"H:i" }} – {{ slot.end_time|time:"H:i" }}
+              </span>
+            </td>
+            <td class="text-muted">
+              {% if slot.effective_from or slot.effective_until %}
+                {{ slot.effective_from|date:"d M Y"|default:"Start" }} – {{ slot.effective_until|date:"d M Y"|default:"Ongoing" }}
+              {% else %}
+                <span class="text-muted">Always Active</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if slot.is_active %}
+                <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Available</span>
+              {% else %}
+                <span class="text-muted"><i class="bi bi-pause-circle me-1"></i>Paused</span>
+              {% endif %}
+            </td>
+            {% if request.user.hospital_memberships.first.role == "HOSPITAL_ADMIN" or request.user.is_superuser %}
+            <td class="pe-4 text-end">
+              <form method="post" action="{% url 'doctor_availability_delete' slot.pk %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove Slot" onclick="return confirm('Remove this schedule slot?');">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">No regular availability hours configured yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

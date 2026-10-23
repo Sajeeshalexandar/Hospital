@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Lab Report — {{ hospital.name }}{% endblock %}
+{% block page_title %}Upload Diagnostic Report{% endblock %}
+
+{% block sidebar_links %}
+{% include "_role_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <!-- Order Context Banner -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius:12px; background:linear-gradient(135deg, #f0f4ff 0%, #e6efff 100%);">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="badge bg-primary">Order #LAB-ORD-{{ order.pk }}</span>
+          <span class="text-muted small">{{ order.ordered_at|date:"M d, Y h:i A" }}</span>
+        </div>
+        <h5 class="fw-bold mb-1" style="color:#1a1f36;">{{ order.test_name }}</h5>
+        <div class="row mt-3 text-muted" style="font-size:14px;">
+          <div class="col-md-6">
+            <strong>Patient:</strong> {{ order.patient.user.get_full_name|default:"Patient" }} ({{ order.patient.patient_id_code }})
+          </div>
+          <div class="col-md-6">
+            <strong>Doctor:</strong> Dr. {{ order.doctor.user.get_full_name|default:"Doctor" }}
+          </div>
+          {% if order.clinical_notes %}
+          <div class="col-12 mt-2">
+            <strong>Clinical Notes:</strong> {{ order.clinical_notes }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload Form -->
+    <div class="card border-0 shadow-sm" style="border-radius:12px;">
+      <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+        <h5 class="fw-bold mb-1" style="color:#1a1f36;">Diagnostic Findings & Report File</h5>
+        <p class="text-muted mb-0" style="font-size:14px;">Publish lab results and attach document (PDF/Image).</p>
+      </div>
+      <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger shadow-sm">
+            {{ form.non_field_errors }}
+          </div>
+          {% endif %}
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:13px;">Report Number <span class="text-muted fw-normal">(Optional)</span></label>
+              {{ form.report_number }}
+              <div class="form-text">Leave blank to auto-generate (e.g. LAB-2026-0001)</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:13px;">Attach Document / Scan</label>
+              {{ form.report_file }}
+              {% if form.report_file.errors %}<div class="text-danger small">{{ form.report_file.errors }}</div>{% endif %}
+              <div class="form-text">PDF, JPEG, or PNG laboratory scan.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:13px;">Testing Datetime</label>
+              {{ form.tested_at }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:13px;">Reported Datetime</label>
+              {{ form.reported_at }}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-semibold" style="font-size:13px;">Diagnostic Findings & Values <span class="text-danger">*</span></label>
+              {{ form.result_summary }}
+              {% if form.result_summary.errors %}<div class="text-danger small">{{ form.result_summary.errors }}</div>{% endif %}
+              <div class="form-text">Specify measured values, units, and reference ranges (e.g. Hemoglobin: 14.2 g/dL [Normal: 13.5-17.5]).</div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-semibold" style="font-size:13px;">Pathologist Remarks / Recommendations</label>
+              {{ form.remarks }}
+              {% if form.remarks.errors %}<div class="text-danger small">{{ form.remarks.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <a href="{% url 'lab_order_list' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+            <button type="submit" class="btn btn-success px-4">
+              <i class="bi bi-cloud-arrow-up me-1"></i> Save & Publish Report
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

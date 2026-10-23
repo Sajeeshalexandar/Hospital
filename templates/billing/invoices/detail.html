@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+
+{% block title %}Invoice {{ invoice.invoice_number }} — {{ hospital.name }}{% endblock %}
+{% block page_title %}Invoice Workspace{% endblock %}
+
+{% block sidebar_links %}
+{% include "_role_sidebar.html" %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  @media print {
+    #sidebar, #topbar, .no-print, .alert-container {
+      display: none !important;
+    }
+    #main-content {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .print-only-sheet {
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Action Bar (hidden when printing) -->
+<div class="d-flex align-items-center justify-content-between mb-4 no-print">
+  <a href="{% url 'invoice_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i> Back to Invoices
+  </a>
+
+  <div class="d-flex align-items-center gap-2">
+    <!-- Status Transition -->
+    {% if request.user.hospital_memberships.first.role != 'DOCTOR' %}
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        Status: <strong>{{ invoice.get_status_display }}</strong>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+        <li><h6 class="dropdown-header">Update Status</h6></li>
+        <li>
+          <form method="post" action="{% url 'invoice_status_update' invoice.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="status" value="ISSUED">
+            <button type="submit" class="dropdown-item">Mark as Issued</button>
+          </form>
+        </li>
+        <li>
+          <form method="post" action="{% url 'invoice_status_update' invoice.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="status" value="VOID">
+            <button type="submit" class="dropdown-item text-danger">Mark as Void</button>
+          </form>
+        </li>
+      </ul>
+    </div>
+    {% endif %}
+
+    <button onclick="window.print()" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-printer me-1"></i> Print / Save PDF
+    </button>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Invoice Sheet & Line Items -->
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm print-only-sheet p-4 p-md-5" style="border-radius:12px; background:#fff;">
+      <!-- Hospital & Invoice Header -->
+      <div class="border-bottom pb-4 mb-4">
+        <div class="row align-items-center">
+          <div class="col-sm-7">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="fs-4 text-primary"><i class="bi bi-heart-pulse-fill"></i></span>
+              <h3 class="fw-bold mb-0" style="color:#1a1f36;">{{ hospital.name }}</h3>
+            </div>
+            <p class="text-muted mb-0 small">{{ hospital.address|default:"General Hospital & Medical Center" }}</p>
+            <p class="text-muted mb-0 small">Phone: {{ hospital.contact_phone|default:"Hospital Helpdesk" }}</p>
+          </div>
+          <div class="col-sm-5 text-sm-end mt-3 mt-sm-0">
+            <h4 class="fw-bold text-dark mb-1">INVOICE</h4>
+            <div class="fs-5 fw-bold text-primary">{{ invoice.invoice_number }}</div>
+            <div class="text-muted small">Date: {{ invoice.issued_at|date:"M d, Y" }}</div>
+            {% if invoice.due_date %}
+              <div class="text-muted small">Due Date: {{ invoice.due_date|date:"M d, Y" }}</div>
+            {% endif %}
+            <div class="mt-2">
+              {% if invoice.status == 'PAID' %}
+                <span class="badge bg-success px-3 py-1">PAID IN FULL</span>
+              {% elif invoice.status == 'PARTIALLY_PAID' %}
+                <span class="badge bg-warning text-dark px-3 py-1">PARTIALLY PAID</span>
+              {% elif invoice.status == 'ISSUED' %}
+                <span class="badge bg-primary px-3 py-1">ISSUED</span>
+              {% elif invoice.status == 'DRAFT' %}
+                <span class="badge bg-secondary px-3 py-1">DRAFT</span>
+              {% elif invoice.status == 'VOID' %}
+                <span class="badge bg-dark px-3 py-1">VOID</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patient Information -->
+      <div class="bg-light p-3 rounded mb-4">
+        <div class="row g-2" style="font-size:14px;">
+          <div class="col-sm-6">
+            <strong class="text-muted d-block small">BILLED TO:</strong>
+            <span class="fs-6 fw-bold text-dark">{{ invoice.patient.user.get_full_name|default:"Patient" }}</span>
+            <div class="text-muted">ID: {{ invoice.patient.patient_id_code }}</div>
+            <div class="text-muted">Phone: {{ invoice.patient.contact_phone|default:"—" }}</div>
+          </div>
+          <div class="col-sm-6 text-sm-end">
+            {% if invoice.appointment %}
+              <strong class="text-muted d-block small">LINKED CONSULTATION:</strong>
+              <div>Appt #{{ invoice.appointment.pk }}</div>
+              <div class="text-muted">Doctor: Dr. {{ invoice.appointment.doctor.user.get_full_name }}</div>
+              <div class="text-muted">Date: {{ invoice.appointment.start_at|date:"M d, Y h:i A" }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Line Items Table -->
+      <div class="table-responsive mb-4">
+        <table class="table table-bordered align-middle">
+          <thead style="background:#f8f9fa;">
+            <tr style="font-size:12px; text-transform:uppercase; color:#606888;">
+              <th style="width: 5%;">#</th>
+              <th>Description</th>
+              <th class="text-center" style="width: 12%;">Type</th>
+              <th class="text-center" style="width: 10%;">Qty</th>
+              <th class="text-end" style="width: 15%;">Unit Price</th>
+              <th class="text-end" style="width: 15%;">Total</th>
+              <th class="text-center no-print" style="width: 8%;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>
+                <div class="fw-semibold text-dark">{{ item.description }}</div>
+                {% if item.discount_amount > 0 or item.tax_amount > 0 %}
+                  <small class="text-muted">
+                    {% if item.discount_amount > 0 %}Disc: -${{ item.discount_amount }} {% endif %}
+                    {% if item.tax_amount > 0 %}Tax: +${{ item.tax_amount }}{% endif %}
+                  </small>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                <span class="badge bg-light text-dark border">{{ item.get_item_type_display }}</span>
+              </td>
+              <td class="text-center">{{ item.quantity|floatformat }}</td>
+              <td class="text-end">${{ item.unit_price|floatformat:2 }}</td>
+              <td class="text-end fw-bold">${{ item.line_total|floatformat:2 }}</td>
+              <td class="text-center no-print">
+                {% if invoice.status != 'VOID' and invoice.status != 'PAID' %}
+                <form method="post" action="{% url 'invoice_item_delete' invoice.pk item.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger p-0 px-2" title="Delete Item">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-4 text-muted">
+                No items added yet. Use the form below to add billing items.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Financial Arithmetic Calculation Box (Rule #9) -->
+      <div class="row justify-content-end mb-4">
+        <div class="col-sm-6">
+          <table class="table table-sm table-borderless">
+            <tr>
+              <td class="text-muted">Subtotal:</td>
+              <td class="text-end fw-semibold">${{ invoice.subtotal|floatformat:2 }}</td>
+            </tr>
+            {% if invoice.discount_amount > 0 %}
+            <tr>
+              <td class="text-success">Invoice Discount:</td>
+              <td class="text-end text-success fw-semibold">-${{ invoice.discount_amount|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+            {% if invoice.tax_amount > 0 %}
+            <tr>
+              <td class="text-muted">Tax / VAT:</td>
+              <td class="text-end fw-semibold">+${{ invoice.tax_amount|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+            <tr class="border-top border-2">
+              <td class="fs-5 fw-bold" style="color:#1a1f36;">Total Amount:</td>
+              <td class="text-end fs-5 fw-bold text-primary">${{ invoice.total_amount|floatformat:2 }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted">Total Paid:</td>
+              <td class="text-end text-success fw-bold">${{ total_paid|floatformat:2 }}</td>
+            </tr>
+            <tr class="table-light">
+              <td class="fw-bold" style="color:#1a1f36;">Balance Due:</td>
+              <td class="text-end fw-bold {% if balance_due > 0 %}text-danger{% else %}text-success{% endif %} fs-6">
+                ${{ balance_due|floatformat:2 }}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      {% if invoice.notes %}
+      <div class="mb-4">
+        <strong class="text-muted d-block small">NOTES / TERMS</strong>
+        <p class="text-muted small mb-0">{{ invoice.notes }}</p>
+      </div>
+      {% endif %}
+
+      <div class="row align-items-end mt-5 pt-4 border-top">
+        <div class="col-6">
+          <small class="text-muted d-block">Authorized Signatory</small>
+          <div class="mt-4 pt-2 border-top d-inline-block" style="width: 180px;"></div>
+        </div>
+        <div class="col-6 text-end">
+          <small class="text-muted d-block">Thank you for choosing {{ hospital.name }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Billing Actions Sidebar (Add Item & Record Payment) (hidden when printing) -->
+  <div class="col-lg-4 no-print">
+    <!-- Add Line Item Card -->
+    {% if invoice.status != 'VOID' and invoice.status != 'PAID' %}
+    <div class="card border-0 shadow-sm mb-4" style="border-radius:12px;">
+      <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+        <h6 class="fw-bold mb-0" style="color:#1a1f36;"><i class="bi bi-cart-plus me-1 text-primary"></i> Add Line Item</h6>
+      </div>
+      <div class="card-body p-4">
+        <form method="post" action="{% url 'invoice_item_add' invoice.pk %}">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Item Description</label>
+            {{ item_form.description }}
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Type</label>
+              {{ item_form.item_type }}
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Quantity</label>
+              {{ item_form.quantity }}
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-4">
+              <label class="form-label small fw-semibold">Unit Price</label>
+              {{ item_form.unit_price }}
+            </div>
+            <div class="col-4">
+              <label class="form-label small fw-semibold">Discount</label>
+              {{ item_form.discount_amount }}
+            </div>
+            <div class="col-4">
+              <label class="form-label small fw-semibold">Tax</label>
+              {{ item_form.tax_amount }}
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 btn-sm">
+            <i class="bi bi-plus-lg me-1"></i> Add to Bill
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Record Payment Card -->
+    {% if invoice.status != 'VOID' and balance_due > 0 %}
+    <div class="card border-0 shadow-sm mb-4" style="border-radius:12px;">
+      <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+        <div class="d-flex align-items-center justify-content-between">
+          <h6 class="fw-bold mb-0" style="color:#1a1f36;"><i class="bi bi-cash-stack me-1 text-success"></i> Collect Payment</h6>
+          <span class="badge bg-danger bg-opacity-10 text-danger">Due: ${{ balance_due|floatformat:2 }}</span>
+        </div>
+      </div>
+      <div class="card-body p-4">
+        <form method="post" action="{% url 'payment_record' invoice.pk %}">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Amount to Pay ($)</label>
+            {{ payment_form.amount }}
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Payment Method</label>
+            {{ payment_form.payment_method }}
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Transaction Reference / Cheque #</label>
+            {{ payment_form.transaction_reference }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Notes</label>
+            {{ payment_form.notes }}
+          </div>
+          <button type="submit" class="btn btn-success w-100 btn-sm">
+            <i class="bi bi-check2-circle me-1"></i> Confirm & Record Payment
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Payments History Card -->
+    <div class="card border-0 shadow-sm" style="border-radius:12px;">
+      <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+        <h6 class="fw-bold mb-0" style="color:#1a1f36;"><i class="bi bi-clock-history me-1"></i> Payment History</h6>
+      </div>
+      <div class="card-body p-4">
+        {% if payments %}
+          <div class="list-group list-group-flush">
+            {% for p in payments %}
+            <div class="list-group-item px-0 py-2 border-bottom">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <span class="fw-bold text-success">${{ p.amount|floatformat:2 }}</span>
+                  <span class="badge bg-light text-dark border ms-1">{{ p.get_payment_method_display }}</span>
+                </div>
+                <small class="text-muted">{{ p.paid_at|date:"M d, H:i" }}</small>
+              </div>
+              {% if p.transaction_reference %}
+                <small class="text-muted d-block">Ref: {{ p.transaction_reference }}</small>
+              {% endif %}
+              <small class="text-muted d-block" style="font-size:11px;">Received by: {{ p.received_by.get_full_name|default:p.received_by.email }}</small>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-muted small text-center py-3">No payments recorded yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

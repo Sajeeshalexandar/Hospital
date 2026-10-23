@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Hospital — Super Admin{% endblock %}
+{% block page_title %}{{ action }} Hospital{% endblock %}
+
+{% block sidebar_links %}
+{% include "super_admin/_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h4 class="fw-bold mb-1" style="color:#1a1f36;">{{ action }} Hospital</h4>
+        <p class="text-muted mb-0" style="font-size:14px;">
+          {% if action == 'Create' %}Register a new hospital organization on the SaaS platform.{% else %}Update hospital details for {{ hospital.name }}.{% endif %}
+        </p>
+      </div>
+      <a href="{% url 'hospital_list' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to List
+      </a>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius:12px;">
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Hospital Name <span class="text-danger">*</span></label>
+              <input type="text" name="name" value="{{ form.name.value|default:'' }}" class="form-control {% if form.name.errors %}is-invalid{% endif %}" placeholder="e.g. City General Hospital" required>
+              {% for error in form.name.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Registration Number <span class="text-danger">*</span></label>
+              <input type="text" name="registration_number" value="{{ form.registration_number.value|default:'' }}" class="form-control {% if form.registration_number.errors %}is-invalid{% endif %}" placeholder="e.g. HOSP-2026-001" required>
+              {% for error in form.registration_number.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Official Email <span class="text-danger">*</span></label>
+              <input type="email" name="email" value="{{ form.email.value|default:'' }}" class="form-control {% if form.email.errors %}is-invalid{% endif %}" placeholder="admin@citygeneral.com" required>
+              {% for error in form.email.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Phone Number <span class="text-danger">*</span></label>
+              <input type="text" name="phone" value="{{ form.phone.value|default:'' }}" class="form-control {% if form.phone.errors %}is-invalid{% endif %}" placeholder="+91 9876543210" required>
+              {% for error in form.phone.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-semibold">Full Address <span class="text-danger">*</span></label>
+              <textarea name="address" rows="2" class="form-control {% if form.address.errors %}is-invalid{% endif %}" placeholder="Street, Sector, Building..." required>{{ form.address.value|default:'' }}</textarea>
+              {% for error in form.address.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">City <span class="text-danger">*</span></label>
+              <input type="text" name="city" value="{{ form.city.value|default:'' }}" class="form-control {% if form.city.errors %}is-invalid{% endif %}" required>
+              {% for error in form.city.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">State <span class="text-danger">*</span></label>
+              <input type="text" name="state" value="{{ form.state.value|default:'' }}" class="form-control {% if form.state.errors %}is-invalid{% endif %}" required>
+              {% for error in form.state.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Country</label>
+              <input type="text" name="country" value="{{ form.country.value|default:'India' }}" class="form-control {% if form.country.errors %}is-invalid{% endif %}">
+              {% for error in form.country.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Postal Code</label>
+              <input type="text" name="postal_code" value="{{ form.postal_code.value|default:'' }}" class="form-control {% if form.postal_code.errors %}is-invalid{% endif %}">
+              {% for error in form.postal_code.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Hospital Template</label>
+              <select name="template" class="form-select">
+                <option value="">Default Template</option>
+                {% for t in form.fields.template.queryset %}
+                  <option value="{{ t.pk }}" {% if form.template.value|stringformat:'s' == t.pk|stringformat:'s' %}selected{% endif %}>{{ t.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Account Status</label>
+              <select name="status" class="form-select">
+                {% for val, label in form.fields.status.choices %}
+                  <option value="{{ val }}" {% if form.status.value == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <a href="{% url 'hospital_list' %}" class="btn btn-light px-4">Cancel</a>
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-check-circle me-1"></i> Save Hospital
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

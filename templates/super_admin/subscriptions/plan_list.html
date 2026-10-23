@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Subscription Plans — Super Admin{% endblock %}
+{% block page_title %}Subscription Plans{% endblock %}
+
+{% block sidebar_links %}
+{% include "super_admin/_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h4 class="fw-bold mb-1" style="color:#1a1f36;">SaaS Subscription Packages</h4>
+    <p class="text-muted mb-0" style="font-size:14px;">Configure subscription tiers, quotas, and pricing for hospitals</p>
+  </div>
+  <a href="{% url 'plan_create' %}" class="btn btn-primary px-3">
+    <i class="bi bi-plus-circle me-1"></i> Create New Plan
+  </a>
+</div>
+
+<div class="row g-4">
+  {% for plan in plans %}
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
+      <div class="card-body p-4 d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h5 class="fw-bold mb-0">{{ plan.name }}</h5>
+          {% if plan.is_active %}
+            <span class="badge bg-success-subtle text-success">Active</span>
+          {% else %}
+            <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
+          {% endif %}
+        </div>
+        <small class="text-muted mb-3">Slug: <code>{{ plan.code }}</code></small>
+
+        <div class="mb-4">
+          <span class="display-6 fw-bold text-dark">{{ plan.currency }} {{ plan.price }}</span>
+          <span class="text-muted"> / {{ plan.duration_days }} days</span>
+        </div>
+
+        <ul class="list-unstyled mb-4" style="font-size:14px;">
+          <li class="mb-2"><i class="bi bi-people-fill text-primary me-2"></i>Up to <strong>{{ plan.max_users }}</strong> Staff Users</li>
+          <li class="mb-2"><i class="bi bi-person-heart text-primary me-2"></i>Up to <strong>{{ plan.max_patients }}</strong> Patients</li>
+          <li class="mb-2"><i class="bi bi-calendar-check text-primary me-2"></i>Duration: <strong>{{ plan.duration_days }}</strong> days</li>
+        </ul>
+
+        <div class="mt-auto pt-3 border-top d-flex justify-content-end">
+          <a href="{% url 'plan_edit' plan.pk %}" class="btn btn-outline-secondary btn-sm w-100">
+            <i class="bi bi-pencil me-1"></i> Edit Plan
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card border-0 shadow-sm p-5 text-center" style="border-radius:12px;">
+      <div class="text-muted mb-3"><i class="bi bi-credit-card" style="font-size: 40px;"></i></div>
+      <h5>No Subscription Plans created yet</h5>
+      <p class="text-muted">Define pricing packages to assign to tenant hospitals.</p>
+      <div class="mt-2">
+        <a href="{% url 'plan_create' %}" class="btn btn-primary">Create First Plan</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

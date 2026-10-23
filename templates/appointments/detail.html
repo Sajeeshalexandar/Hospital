@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Appointment #{{ appt.pk }} — {{ hospital.name }}{% endblock %}
+{% block page_title %}Appointment Details{% endblock %}
+
+{% block sidebar_links %}
+{% include "_role_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <h4 class="fw-bold mb-0" style="color:#1a1f36;">Appointment #{{ appt.pk }}</h4>
+      {% if appt.status == "CONFIRMED" %}
+        <span class="badge bg-success-subtle text-success">Confirmed</span>
+      {% elif appt.status == "PENDING" %}
+        <span class="badge bg-warning-subtle text-warning">Pending</span>
+      {% elif appt.status == "COMPLETED" %}
+        <span class="badge bg-primary-subtle text-primary">Completed</span>
+      {% elif appt.status == "CANCELLED" %}
+        <span class="badge bg-danger-subtle text-danger">Cancelled</span>
+      {% else %}
+        <span class="badge bg-secondary-subtle text-secondary">{{ appt.status }}</span>
+      {% endif %}
+    </div>
+    <p class="text-muted mb-0" style="font-size:14px;">
+      <i class="bi bi-calendar3 me-1"></i>{{ appt.start_at|date:"l, d F Y" }} &nbsp;|&nbsp;
+      <i class="bi bi-clock me-1"></i>{{ appt.start_at|time:"H:i" }} – {{ appt.end_at|time:"H:i" }}
+    </p>
+  </div>
+
+  <div class="d-flex gap-2">
+    <a href="{% url 'appointment_list' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i> Back to Schedule
+    </a>
+    {% if appt.status != "CANCELLED" %}
+      {% if user_role in "HOSPITAL_ADMIN DOCTOR" or request.user.is_superuser %}
+        <a href="{% url 'record_create' appt.pk %}" class="btn btn-primary btn-sm">
+          <i class="bi bi-file-earmark-medical me-1"></i> Record Diagnosis
+        </a>
+        <a href="{% url 'prescription_create' appt.pk %}" class="btn btn-success btn-sm">
+          <i class="bi bi-capsule me-1"></i> Write Prescription
+        </a>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Patient Summary Card -->
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h6 class="fw-bold mb-0"><i class="bi bi-person text-primary me-2"></i>Patient Profile</h6>
+      </div>
+      <div class="card-body">
+        <h5 class="fw-bold mb-1">{{ appt.patient.user.get_full_name|default:appt.patient.patient_id_code }}</h5>
+        <div class="text-muted mb-3" style="font-size:13px;">ID: <code>{{ appt.patient.patient_id_code }}</code></div>
+
+        <div style="font-size:14px;">
+          <div class="mb-2"><i class="bi bi-phone me-2 text-muted"></i>{{ appt.patient.contact_number }}</div>
+          <div class="mb-2"><i class="bi bi-gender-ambiguous me-2 text-muted"></i>{{ appt.patient.get_gender_display }} · {{ appt.patient.date_of_birth|date:"d M Y" }}</div>
+          {% if appt.patient.blood_group %}
+            <div class="mb-2"><i class="bi bi-droplet-fill text-danger me-2"></i>Blood Group: <strong>{{ appt.patient.blood_group }}</strong></div>
+          {% endif %}
+        </div>
+        <div class="mt-3 pt-3 border-top">
+          <a href="{% url 'patient_detail' appt.patient.pk %}" class="btn btn-outline-primary btn-sm w-100">
+            View Patient History
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Doctor & Consultation Details -->
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h6 class="fw-bold mb-0"><i class="bi bi-person-video3 text-primary me-2"></i>Consulting Specialist</h6>
+      </div>
+      <div class="card-body">
+        <h5 class="fw-bold mb-1">Dr. {{ appt.doctor.user.get_full_name }}</h5>
+        <div class="badge bg-light text-dark border mb-3">{{ appt.department.name }}</div>
+
+        <div style="font-size:14px;">
+          <div class="mb-2 text-muted">Specialty: <strong class="text-dark">{{ appt.doctor.specialization }}</strong></div>
+          <div class="mb-2 text-muted">Fee: <strong class="text-success">{{ hospital.settings.currency|default:'INR' }} {{ appt.doctor.consultation_fee }}</strong></div>
+          <div class="mb-2 text-muted">Phone: <strong class="text-dark">{{ appt.doctor.contact_number }}</strong></div>
+        </div>
+
+        <div class="mt-3 pt-3 border-top">
+          <div class="fw-semibold mb-1" style="font-size:13px;">Chief Complaint / Reason:</div>
+          <p class="text-muted mb-0" style="font-size:14px;">{{ appt.reason_for_visit }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status & Actions Card -->
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h6 class="fw-bold mb-0"><i class="bi bi-sliders text-primary me-2"></i>Appointment Status</h6>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'appointment_status_update' appt.pk %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:13px;">Current Status</label>
+            <select name="status" class="form-select">
+              {% for val, label in status_form.fields.status.choices %}
+                <option value="{{ val }}" {% if appt.status == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:13px;">Cancellation Reason (if cancelling)</label>
+            <textarea name="cancellation_reason" rows="2" class="form-control" placeholder="Optional notes or cancellation reason...">{{ appt.cancellation_reason|default:'' }}</textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-sm w-100">
+            <i class="bi bi-check2-circle me-1"></i> Update Status
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Linked Clinical Records Section -->
+<div class="row g-4">
+  <!-- Medical Records -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm" style="border-radius:12px;">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+        <h6 class="fw-bold mb-0"><i class="bi bi-file-earmark-medical text-primary me-2"></i>Consultation Medical Records</h6>
+        {% if appt.status != "CANCELLED" %}
+        <a href="{% url 'record_create' appt.pk %}" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-plus-circle me-1"></i> Add Notes
+        </a>
+        {% endif %}
+      </div>
+      <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+          {% for r in medical_records %}
+          <div class="list-group-item p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="fw-bold text-dark mb-0">{{ r.diagnosis }}</h6>
+              <a href="{% url 'record_detail' r.pk %}" class="btn btn-sm btn-outline-secondary py-0">View</a>
+            </div>
+            <p class="text-muted mb-1" style="font-size:13px;"><strong>Symptoms:</strong> {{ r.symptoms }}</p>
+            {% if r.treatment_notes %}
+              <p class="text-muted mb-1" style="font-size:13px;"><strong>Treatment:</strong> {{ r.treatment_notes|truncatewords:15 }}</p>
+            {% endif %}
+            <small class="text-muted" style="font-size:12px;">Logged by Dr. {{ r.doctor.user.get_full_name }} on {{ r.created_at|date:"d M Y, H:i" }}</small>
+          </div>
+          {% empty %}
+          <div class="text-center text-muted py-4" style="font-size:14px;">
+            No clinical records attached to this consultation yet.
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prescriptions -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm" style="border-radius:12px;">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+        <h6 class="fw-bold mb-0"><i class="bi bi-capsule text-primary me-2"></i>Issued Prescriptions</h6>
+        {% if appt.status != "CANCELLED" %}
+        <a href="{% url 'prescription_create' appt.pk %}" class="btn btn-sm btn-outline-success">
+          <i class="bi bi-plus-circle me-1"></i> New Prescription
+        </a>
+        {% endif %}
+      </div>
+      <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+          {% for rx in prescriptions %}
+          <div class="list-group-item p-3">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <div>
+                <span class="fw-bold text-dark me-2"><code>{{ rx.prescription_number }}</code></span>
+                {% if rx.status == "ISSUED" %}
+                  <span class="badge bg-success-subtle text-success">Issued</span>
+                {% else %}
+                  <span class="badge bg-warning-subtle text-warning">Draft</span>
+                {% endif %}
+              </div>
+              <a href="{% url 'prescription_detail' rx.pk %}" class="btn btn-sm btn-outline-secondary py-0">View & Print</a>
+            </div>
+            <div class="text-muted" style="font-size:13px;">
+              {{ rx.medicines.count }} medicine{{ rx.medicines.count|pluralize }} prescribed
+            </div>
+            <small class="text-muted" style="font-size:12px;">{{ rx.created_at|date:"d M Y, H:i" }}</small>
+          </div>
+          {% empty %}
+          <div class="text-center text-muted py-4" style="font-size:14px;">
+            No prescriptions created for this appointment yet.
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

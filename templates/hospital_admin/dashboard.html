@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Hospital Admin Dashboard — {{ hospital.name }}{% endblock %}
+{% block page_title %}{{ hospital.name }} — Dashboard{% endblock %}
+
+{% block sidebar_links %}
+{% include "hospital_admin/_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Welcome Banner ──────────────────────────────────────── -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h4 class="fw-bold mb-1" style="color:#1a1f36;">
+      👋 Welcome, {{ request.user.get_full_name|default:request.user.email }}
+    </h4>
+    <p class="text-muted mb-0" style="font-size:14px;">
+      Hospital Admin &nbsp;·&nbsp;
+      {% if hospital %}{{ hospital.name }}{% else %}Your Hospital{% endif %}
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'appointment_create' %}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-calendar2-plus me-1"></i> Book Appointment
+    </a>
+    <a href="{% url 'invoice_create' %}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-circle me-1"></i> New Invoice
+    </a>
+  </div>
+</div>
+
+<!-- ── Stat Cards ──────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card bg-white">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="stat-label">Active Doctors</span>
+        <div class="stat-icon bg-success bg-opacity-10 text-success">
+          <i class="bi bi-person-video3"></i>
+        </div>
+      </div>
+      <div class="stat-number text-success">{{ total_doctors }}</div>
+      <small class="text-muted">{{ total_departments }} Departments</small>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card bg-white">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="stat-label">Active Patients</span>
+        <div class="stat-icon bg-info bg-opacity-10 text-info">
+          <i class="bi bi-person-heart"></i>
+        </div>
+      </div>
+      <div class="stat-number">{{ total_patients }}</div>
+      <small class="text-muted">Registered in Hospital</small>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card bg-white">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="stat-label">Total Revenue</span>
+        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-cash-stack"></i>
+        </div>
+      </div>
+      <div class="stat-number text-primary">${{ total_collected|floatformat:2 }}</div>
+      <small class="text-muted">Billed: ${{ total_billed|floatformat:2 }}</small>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card bg-white">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="stat-label">Outstanding</span>
+        <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+          <i class="bi bi-receipt"></i>
+        </div>
+      </div>
+      <div class="stat-number text-danger">${{ total_outstanding|floatformat:2 }}</div>
+      <small class="text-muted">Pending Patient Balance</small>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main Grid ───────────────────────────────────────────── -->
+<div class="row g-4">
+  <!-- Upcoming Appointments -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-body p-0">
+        <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
+          <h6 class="fw-bold mb-0">Upcoming Appointments</h6>
+          <a href="{% url 'appointment_list' %}" class="btn btn-outline-primary btn-sm">View All</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" style="font-size:14px;">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Patient</th>
+                <th>Doctor</th>
+                <th>Time</th>
+                <th class="pe-4">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for appt in upcoming_appointments %}
+              <tr>
+                <td class="ps-4 fw-semibold">{{ appt.patient.user.get_full_name|default:"Patient" }}</td>
+                <td>Dr. {{ appt.doctor.user.get_full_name }}</td>
+                <td class="text-muted">{{ appt.start_at|date:"d M, H:i" }}</td>
+                <td class="pe-4">
+                  {% if appt.status == "CONFIRMED" %}
+                    <span class="badge bg-success-subtle text-success">Confirmed</span>
+                  {% else %}
+                    <span class="badge bg-warning-subtle text-warning">Pending</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center text-muted py-4">
+                  No upcoming appointments.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Invoices -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-body p-0">
+        <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
+          <h6 class="fw-bold mb-0">Recent Billing Activity</h6>
+          <a href="{% url 'invoice_list' %}" class="btn btn-outline-primary btn-sm">View Invoices</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" style="font-size:14px;">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Invoice #</th>
+                <th>Patient</th>
+                <th>Amount</th>
+                <th class="pe-4">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for inv in recent_invoices %}
+              <tr>
+                <td class="ps-4">
+                  <a href="{% url 'invoice_detail' inv.pk %}" class="fw-bold text-decoration-none" style="color:#1a1f36;">
+                    {{ inv.invoice_number }}
+                  </a>
+                </td>
+                <td>{{ inv.patient.user.get_full_name|default:"Patient" }}</td>
+                <td class="fw-semibold">${{ inv.total_amount|floatformat:2 }}</td>
+                <td class="pe-4">
+                  {% if inv.status == 'PAID' %}
+                    <span class="badge bg-success">Paid</span>
+                  {% elif inv.status == 'PARTIALLY_PAID' %}
+                    <span class="badge bg-warning text-dark">Partial</span>
+                  {% elif inv.status == 'ISSUED' %}
+                    <span class="badge bg-primary">Issued</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ inv.get_status_display }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center text-muted py-4">
+                  No invoices generated yet.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Laboratory Orders -->
+  <div class="col-12">
+    <div class="card border-0 shadow-sm" style="border-radius:12px;">
+      <div class="card-body p-0">
+        <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
+          <h6 class="fw-bold mb-0"><i class="bi bi-eyedropper me-1 text-primary"></i> Diagnostic Laboratory Orders</h6>
+          <a href="{% url 'lab_order_list' %}" class="btn btn-outline-primary btn-sm">All Lab Orders</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" style="font-size:14px;">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Order ID & Test</th>
+                <th>Patient</th>
+                <th>Prescribed By</th>
+                <th>Date</th>
+                <th class="pe-4">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in recent_lab_orders %}
+              <tr>
+                <td class="ps-4">
+                  <span class="fw-semibold text-primary">#LAB-{{ order.pk }}</span> — {{ order.test_name }}
+                </td>
+                <td>{{ order.patient.user.get_full_name|default:"Patient" }}</td>
+                <td>Dr. {{ order.doctor.user.get_full_name }}</td>
+                <td class="text-muted">{{ order.ordered_at|date:"d M, H:i" }}</td>
+                <td class="pe-4">
+                  {% if order.status == 'COMPLETED' %}
+                    <span class="badge bg-success">Completed</span>
+                  {% elif order.status == 'PROCESSING' %}
+                    <span class="badge bg-primary">Processing</span>
+                  {% elif order.status == 'COLLECTED' %}
+                    <span class="badge bg-info text-dark">Collected</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">{{ order.get_status_display }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">
+                  No lab test orders recorded.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

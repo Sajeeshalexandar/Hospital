@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Hospital Settings — {{ hospital.name }}{% endblock %}
+{% block page_title %}Hospital Settings{% endblock %}
+
+{% block sidebar_links %}
+{% include "hospital_admin/_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h4 class="fw-bold mb-1" style="color:#1a1f36;">Hospital Settings</h4>
+        <p class="text-muted mb-0" style="font-size:14px;">Configure appointment durations, timezone, and booking permissions for {{ hospital.name }}</p>
+      </div>
+      <a href="{% url 'my_hospital_profile' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Profile
+      </a>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius:12px;">
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Hospital Timezone <span class="text-danger">*</span></label>
+              <input type="text" name="timezone" value="{{ form.timezone.value|default:'Asia/Kolkata' }}" class="form-control {% if form.timezone.errors %}is-invalid{% endif %}" required>
+              <div class="form-text">e.g. Asia/Kolkata, America/New_York, UTC</div>
+              {% for error in form.timezone.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Currency Code <span class="text-danger">*</span></label>
+              <input type="text" name="currency" value="{{ form.currency.value|default:'INR' }}" maxlength="3" class="form-control {% if form.currency.errors %}is-invalid{% endif %}" required>
+              <div class="form-text">3-letter currency code, e.g. INR, USD, EUR</div>
+              {% for error in form.currency.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Default Appointment Duration (Minutes) <span class="text-danger">*</span></label>
+              <input type="number" name="appointment_duration_minutes" value="{{ form.appointment_duration_minutes.value|default:30 }}" class="form-control {% if form.appointment_duration_minutes.errors %}is-invalid{% endif %}" required>
+              <div class="form-text">Standard consultation slot time (minutes)</div>
+              {% for error in form.appointment_duration_minutes.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6 d-flex align-items-center">
+              <div class="form-check form-switch mt-3">
+                <input class="form-check-input" type="checkbox" name="allow_online_appointments" id="onlineApptCheck" {% if form.allow_online_appointments.value %}checked{% endif %}>
+                <label class="form-check-label fw-semibold" for="onlineApptCheck">Allow Online Appointments</label>
+                <div class="form-text">Patients can schedule appointments via portal</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <a href="{% url 'my_hospital_profile' %}" class="btn btn-light px-4">Cancel</a>
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-check2-circle me-1"></i> Save Settings
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

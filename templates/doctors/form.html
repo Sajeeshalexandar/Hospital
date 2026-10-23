@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Doctor — {{ hospital.name }}{% endblock %}
+{% block page_title %}{{ action }} Doctor{% endblock %}
+
+{% block sidebar_links %}
+{% include "_role_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h4 class="fw-bold mb-1" style="color:#1a1f36;">{{ action }} Doctor</h4>
+        <p class="text-muted mb-0" style="font-size:14px;">
+          {% if action == 'Register' %}Create credentials and clinical profile for a specialist at {{ hospital.name }}.{% else %}Update profile details for Dr. {{ doctor.user.get_full_name }}.{% endif %}
+        </p>
+      </div>
+      <a href="{% url 'doctor_list' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Doctors
+      </a>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius:12px;">
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+          {% endif %}
+
+          <h6 class="fw-bold text-primary mb-3"><i class="bi bi-person-badge me-2"></i>Account & Identity</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
+              <input type="text" name="first_name" value="{{ form.first_name.value|default:'' }}" class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" required>
+              {% for error in form.first_name.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Last Name <span class="text-danger">*</span></label>
+              <input type="text" name="last_name" value="{{ form.last_name.value|default:'' }}" class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" required>
+              {% for error in form.last_name.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            {% if action == 'Register' %}
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Login Email <span class="text-danger">*</span></label>
+              <input type="email" name="email" value="{{ form.email.value|default:'' }}" class="form-control {% if form.email.errors %}is-invalid{% endif %}" placeholder="doctor@hospital.com" required>
+              {% for error in form.email.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Initial Password <span class="text-danger">*</span></label>
+              <input type="password" name="password" class="form-control {% if form.password.errors %}is-invalid{% endif %}" placeholder="Min 6 characters" required>
+              {% for error in form.password.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <h6 class="fw-bold text-primary mb-3 pt-2 border-top"><i class="bi bi-hospital me-2"></i>Clinical & Practice Details</h6>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Department <span class="text-danger">*</span></label>
+              <select name="department" class="form-select {% if form.department.errors %}is-invalid{% endif %}" required>
+                <option value="">Select Department</option>
+                {% for dept in form.fields.department.queryset %}
+                  <option value="{{ dept.pk }}" {% if form.department.value|stringformat:'s' == dept.pk|stringformat:'s' %}selected{% endif %}>{{ dept.name }}</option>
+                {% endfor %}
+              </select>
+              {% for error in form.department.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Employee / Doctor Code <span class="text-danger">*</span></label>
+              <input type="text" name="employee_code" value="{{ form.employee_code.value|default:'' }}" class="form-control {% if form.employee_code.errors %}is-invalid{% endif %}" placeholder="e.g. DOC-012" required>
+              {% for error in form.employee_code.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Qualification <span class="text-danger">*</span></label>
+              <input type="text" name="qualification" value="{{ form.qualification.value|default:'' }}" class="form-control {% if form.qualification.errors %}is-invalid{% endif %}" placeholder="e.g. MBBS, MD (Cardiology)" required>
+              {% for error in form.qualification.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Specialization <span class="text-danger">*</span></label>
+              <input type="text" name="specialization" value="{{ form.specialization.value|default:'' }}" class="form-control {% if form.specialization.errors %}is-invalid{% endif %}" placeholder="e.g. Interventional Cardiologist" required>
+              {% for error in form.specialization.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Experience (Years)</label>
+              <input type="number" name="experience_years" value="{{ form.experience_years.value|default:0 }}" class="form-control {% if form.experience_years.errors %}is-invalid{% endif %}">
+              {% for error in form.experience_years.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Consultation Fee <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text">{{ hospital.settings.currency|default:'INR' }}</span>
+                <input type="number" step="0.01" name="consultation_fee" value="{{ form.consultation_fee.value|default:'500.00' }}" class="form-control {% if form.consultation_fee.errors %}is-invalid{% endif %}" required>
+              </div>
+              {% for error in form.consultation_fee.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">OP Commission (%)</label>
+              <input type="number" step="0.01" name="op_commission_percentage" value="{{ form.op_commission_percentage.value|default:0 }}" class="form-control {% if form.op_commission_percentage.errors %}is-invalid{% endif %}">
+              {% for error in form.op_commission_percentage.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Contact Phone Number <span class="text-danger">*</span></label>
+              <input type="text" name="contact_number" value="{{ form.contact_number.value|default:'' }}" class="form-control {% if form.contact_number.errors %}is-invalid{% endif %}" placeholder="+91 9876543210" required>
+              {% for error in form.contact_number.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6 d-flex align-items-center">
+              <div class="form-check form-switch mt-3">
+                <input class="form-check-input" type="checkbox" name="is_active" id="docActiveCheck" {% if form.is_active.value or action == 'Register' %}checked{% endif %}>
+                <label class="form-check-label fw-semibold" for="docActiveCheck">Doctor Profile is Active</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <a href="{% url 'doctor_list' %}" class="btn btn-light px-4">Cancel</a>
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-check-circle me-1"></i> Save Doctor
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Laboratory Orders — {{ hospital.name }}{% endblock %}
+{% block page_title %}Diagnostic Laboratory{% endblock %}
+
+{% block sidebar_links %}
+{% include "_role_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h4 class="fw-bold mb-1" style="color:#1a1f36;">Laboratory Investigations</h4>
+    <p class="text-muted mb-0" style="font-size:14px;">Diagnostic orders and test reports at {{ hospital.name }}</p>
+  </div>
+  {% if request.user.hospital_memberships.first.role != 'STAFF' %}
+  <a href="{% url 'lab_order_create' %}" class="btn btn-primary px-3">
+    <i class="bi bi-eyedropper me-1"></i> Order Lab Test
+  </a>
+  {% endif %}
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius:12px;">
+  <div class="card-body p-3">
+    <form method="get" class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+          <input type="text" name="q" value="{{ q }}" class="form-control bg-light border-0" placeholder="Search test name, patient ID, name..." />
+        </div>
+      </div>
+      <div class="col-md-4">
+        <select name="status" class="form-select bg-light border-0">
+          <option value="">All Statuses</option>
+          {% for val, label in status_choices %}
+            <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-secondary w-100">Filter</button>
+        {% if q or status_filter %}
+          <a href="{% url 'lab_order_list' %}" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i></a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Orders Table -->
+<div class="card border-0 shadow-sm" style="border-radius:12px;">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead style="background:#f8f9fa;">
+        <tr style="font-size:12px; text-transform:uppercase; color:#8892b0;">
+          <th class="ps-4">Order ID & Test</th>
+          <th>Patient</th>
+          <th>Prescribed By</th>
+          <th>Ordered At</th>
+          <th>Status</th>
+          <th class="text-end pe-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td class="ps-4">
+            <span class="fw-bold" style="color:#1a1f36;">#LAB-ORD-{{ order.pk }}</span>
+            <div class="text-primary fw-semibold">{{ order.test_name }}</div>
+            {% if order.clinical_notes %}
+              <small class="text-muted text-truncate d-inline-block" style="max-width:260px;">{{ order.clinical_notes }}</small>
+            {% endif %}
+          </td>
+          <td>
+            <div class="fw-semibold">{{ order.patient.user.get_full_name|default:"Patient" }}</div>
+            <small class="text-muted">{{ order.patient.patient_id_code }}</small>
+          </td>
+          <td>
+            <div>Dr. {{ order.doctor.user.get_full_name|default:"Doctor" }}</div>
+            <small class="text-muted">{{ order.doctor.specialization|default:"Specialist" }}</small>
+          </td>
+          <td>
+            <div>{{ order.ordered_at|date:"M d, Y" }}</div>
+            <small class="text-muted">{{ order.ordered_at|time:"h:i A" }}</small>
+          </td>
+          <td>
+            {% if order.status == 'REQUESTED' %}
+              <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Requested</span>
+            {% elif order.status == 'COLLECTED' %}
+              <span class="badge bg-info text-dark"><i class="bi bi-droplet me-1"></i>Sample Collected</span>
+            {% elif order.status == 'PROCESSING' %}
+              <span class="badge bg-primary"><i class="bi bi-gear-wide-connected me-1"></i>Processing</span>
+            {% elif order.status == 'COMPLETED' %}
+              <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Completed</span>
+            {% elif order.status == 'CANCELLED' %}
+              <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Cancelled</span>
+            {% endif %}
+          </td>
+          <td class="text-end pe-4">
+            {% if order.status == 'COMPLETED' and order.reports.first %}
+              <a href="{% url 'lab_report_detail' order.reports.first.pk %}" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-file-earmark-medical me-1"></i> View Report
+              </a>
+            {% else %}
+              <div class="btn-group btn-group-sm">
+                {% if order.status != 'CANCELLED' %}
+                  <a href="{% url 'lab_report_upload' order.pk %}" class="btn btn-outline-primary">
+                    <i class="bi bi-upload me-1"></i> Upload Report
+                  </a>
+                  <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-dismiss="dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="visually-hidden">Toggle Dropdown</span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <li><h6 class="dropdown-header">Update Stage</h6></li>
+                    {% if order.status != 'COLLECTED' %}
+                    <li>
+                      <form method="post" action="{% url 'lab_order_status_update' order.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="COLLECTED">
+                        <button type="submit" class="dropdown-item">Mark Sample Collected</button>
+                      </form>
+                    </li>
+                    {% endif %}
+                    {% if order.status != 'PROCESSING' %}
+                    <li>
+                      <form method="post" action="{% url 'lab_order_status_update' order.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="PROCESSING">
+                        <button type="submit" class="dropdown-item">Mark In-Process</button>
+                      </form>
+                    </li>
+                    {% endif %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <form method="post" action="{% url 'lab_order_status_update' order.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="CANCELLED">
+                        <button type="submit" class="dropdown-item text-danger">Cancel Order</button>
+                      </form>
+                    </li>
+                  </ul>
+                {% endif %}
+              </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center py-5 text-muted">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+            No laboratory orders found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

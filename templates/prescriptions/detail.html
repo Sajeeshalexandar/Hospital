@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Prescription {{ rx.prescription_number }} — {{ hospital.name }}{% endblock %}
+{% block page_title %}Prescription {{ rx.prescription_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  @media print {
+    #sidebar, #topbar, .no-print, .alert-container {
+      display: none !important;
+    }
+    #main-content {
+      margin-left: 0 !important;
+      padding: 0 !important;
+    }
+    .prescription-card {
+      box-shadow: none !important;
+      border: 1px solid #ddd !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block sidebar_links %}
+{% include "_role_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 no-print">
+  <div>
+    <h4 class="fw-bold mb-1" style="color:#1a1f36;">Prescription Workspace</h4>
+    <p class="text-muted mb-0" style="font-size:14px;">Number: <code>{{ rx.prescription_number }}</code> · Status: <strong>{{ rx.get_status_display }}</strong></p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'prescription_list' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i> Back to Prescriptions
+    </a>
+    <button onclick="window.print()" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-printer me-1"></i> Print / Save PDF
+    </button>
+    {% if can_edit and rx.medicines.exists %}
+    <form method="post" class="d-inline">
+      {% csrf_token %}
+      <input type="hidden" name="update_status" value="ISSUED">
+      <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Sign and issue this prescription to the patient?');">
+        <i class="bi bi-check2-circle me-1"></i> Sign & Issue Rx
+      </button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Prescription Document Sheet -->
+<div class="card border-0 shadow-sm prescription-card mb-4" style="border-radius:14px;">
+  <div class="card-body p-5">
+
+    <!-- Formal Header -->
+    <div class="row align-items-center pb-4 mb-4 border-bottom">
+      <div class="col-8">
+        <h3 class="fw-bold text-primary mb-1">{{ hospital.name }}</h3>
+        <p class="text-muted mb-0" style="font-size:13px;">
+          {{ hospital.address }}, {{ hospital.city }}, {{ hospital.state }}<br>
+          Phone: {{ hospital.phone }} · Email: {{ hospital.email }}
+        </p>
+      </div>
+      <div class="col-4 text-end">
+        <span class="fs-4 fw-bold text-dark d-block"><code>{{ rx.prescription_number }}</code></span>
+        <small class="text-muted">Date: {{ rx.issued_at|date:"d M Y"|default:rx.created_at|date:"d M Y" }}</small>
+        <div class="mt-1">
+          {% if rx.status == "ISSUED" %}
+            <span class="badge bg-success">ISSUED & SIGNED</span>
+          {% else %}
+            <span class="badge bg-warning text-dark">DRAFT (PENDING SIGNATURE)</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Doctor & Patient Row -->
+    <div class="row g-3 py-3 px-3 bg-light rounded-3 mb-4" style="font-size:14px;">
+      <div class="col-md-6 border-end">
+        <div class="text-muted" style="font-size:12px;">PRESCRIBING DOCTOR:</div>
+        <div class="fw-bold fs-6 text-dark">Dr. {{ rx.doctor.user.get_full_name }}</div>
+        <div class="text-muted">{{ rx.doctor.qualification }} · {{ rx.doctor.specialization }}</div>
+        <div class="text-muted">Dept: {{ rx.doctor.department.name }}</div>
+      </div>
+      <div class="col-md-6 ps-md-4">
+        <div class="text-muted" style="font-size:12px;">PATIENT DETAILS:</div>
+        <div class="fw-bold fs-6 text-dark">{{ rx.patient.user.get_full_name|default:rx.patient.patient_id_code }}</div>
+        <div class="text-muted">ID: <code>{{ rx.patient.patient_id_code }}</code> · Gender: {{ rx.patient.get_gender_display }} · DOB: {{ rx.patient.date_of_birth|date:"d M Y" }}</div>
+        <div class="text-muted">Contact: {{ rx.patient.contact_number }}</div>
+      </div>
+    </div>
+
+    <!-- Rx Symbol -->
+    <div class="mb-3">
+      <span class="fs-2 fw-bold text-primary" style="font-family: serif;">℞</span>
+    </div>
+
+    <!-- Medicines Table -->
+    <div class="table-responsive mb-4">
+      <table class="table table-bordered align-middle mb-0" style="font-size:14px;">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 5%;">#</th>
+            <th style="width: 30%;">Medicine Name & Strength</th>
+            <th style="width: 15%;">Dosage & Route</th>
+            <th style="width: 20%;">Frequency</th>
+            <th style="width: 15%;">Duration</th>
+            <th style="width: 15%;">Instructions</th>
+            {% if can_edit %}
+            <th class="no-print text-center" style="width: 5%;">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for med in medicines %}
+          <tr>
+            <td class="text-center text-muted">{{ forloop.counter }}</td>
+            <td>
+              <span class="fw-bold text-dark">{{ med.medicine_name }}</span>
+              {% if med.strength %}<span class="badge bg-light text-dark border ms-1">{{ med.strength }}</span>{% endif %}
+            </td>
+            <td>
+              {{ med.dosage }}
+              {% if med.route %}<small class="text-muted d-block">({{ med.route }})</small>{% endif %}
+            </td>
+            <td><strong>{{ med.frequency }}</strong></td>
+            <td>{{ med.duration }}</td>
+            <td class="text-muted">{{ med.instructions|default:"—" }}</td>
+            {% if can_edit %}
+            <td class="no-print text-center">
+              <form method="post" action="{% url 'prescription_medicine_delete' med.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="Delete Medicine" onclick="return confirm('Remove this medication?');">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="{% if can_edit %}7{% else %}6{% endif %}" class="text-center text-muted py-4">
+              No medications added to this prescription yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if rx.notes %}
+    <div class="p-3 bg-light rounded-3 mb-4" style="font-size:14px;">
+      <strong class="d-block mb-1 text-dark"><i class="bi bi-info-circle me-1 text-primary"></i>General Instructions & Advice:</strong>
+      <p class="mb-0 text-muted" style="white-space:pre-wrap;">{{ rx.notes }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Formal Footer with Doctor Signature -->
+    <div class="row pt-5 mt-5">
+      <div class="col-8">
+        <small class="text-muted">
+          Generated via MediSaaS Hospital Administration Portal.<br>
+          This is a valid electronic medical prescription.
+        </small>
+      </div>
+      <div class="col-4 text-center">
+        <div class="border-bottom pb-2 mb-1 fw-bold text-dark" style="border-width: 1.5px !important;">
+          Dr. {{ rx.doctor.user.get_full_name }}
+        </div>
+        <small class="text-muted">Authorized Medical Practitioner Signature</small>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Add Medicine Form (Only shown when Prescription is in DRAFT mode) -->
+{% if can_edit %}
+<div class="card border-0 shadow-sm no-print mb-4" style="border-radius:12px;">
+  <div class="card-header bg-white py-3 border-bottom">
+    <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-plus-circle me-2"></i>Add Medicine to Prescription</h6>
+  </div>
+  <div class="card-body p-4">
+    <form method="post" action="{% url 'prescription_medicine_add' rx.pk %}">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold" style="font-size:13px;">Medicine Name <span class="text-danger">*</span></label>
+          {{ med_form.medicine_name }}
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-semibold" style="font-size:13px;">Strength</label>
+          {{ med_form.strength }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold" style="font-size:13px;">Dosage <span class="text-danger">*</span></label>
+          {{ med_form.dosage }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold" style="font-size:13px;">Route</label>
+          {{ med_form.route }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold" style="font-size:13px;">Frequency (e.g. 1-0-1) <span class="text-danger">*</span></label>
+          {{ med_form.frequency }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold" style="font-size:13px;">Duration <span class="text-danger">*</span></label>
+          {{ med_form.duration }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold" style="font-size:13px;">Quantity</label>
+          {{ med_form.quantity }}
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold" style="font-size:13px;">Specific Instructions</label>
+          {{ med_form.instructions }}
+        </div>
+      </div>
+      <div class="mt-3 text-end">
+        <button type="submit" class="btn btn-primary btn-sm px-4">
+          <i class="bi bi-plus-lg me-1"></i> Add Medication Line
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

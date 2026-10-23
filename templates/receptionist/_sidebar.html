@@ -1,0 +1,36 @@
+<div class="nav-section-label">Reception</div>
+<a href="{% url 'receptionist_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'receptionist_dashboard' %}active{% endif %}">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'appointment_create' %}" class="nav-link {% if request.resolver_match.url_name == 'appointment_create' %}active{% endif %}">
+  <i class="bi bi-calendar2-plus"></i> Book Appointment
+</a>
+<a href="{% url 'appointment_list' %}" class="nav-link {% if 'appointment' in request.resolver_match.url_name and request.resolver_match.url_name != 'appointment_create' %}active{% endif %}">
+  <i class="bi bi-calendar2-check"></i> All Appointments
+</a>
+
+<div class="nav-section-label">Billing & Cashier</div>
+<a href="{% url 'invoice_list' %}" class="nav-link {% if 'invoice' in request.resolver_match.url_name and request.resolver_match.url_name != 'invoice_create' %}active{% endif %}">
+  <i class="bi bi-receipt-cutoff"></i> All Invoices
+</a>
+<a href="{% url 'invoice_create' %}" class="nav-link {% if request.resolver_match.url_name == 'invoice_create' %}active{% endif %}">
+  <i class="bi bi-plus-circle"></i> Create Invoice
+</a>
+
+<div class="nav-section-label">Patients</div>
+<a href="{% url 'patient_create' %}" class="nav-link {% if request.resolver_match.url_name == 'patient_create' %}active{% endif %}">
+  <i class="bi bi-person-plus"></i> Register Patient
+</a>
+<a href="{% url 'patient_list' %}" class="nav-link {% if request.resolver_match.url_name == 'patient_list' or request.resolver_match.url_name == 'patient_detail' %}active{% endif %}">
+  <i class="bi bi-person-heart"></i> Patient Directory
+</a>
+
+<div class="nav-section-label">Diagnostic Services</div>
+<a href="{% url 'lab_order_list' %}" class="nav-link {% if 'lab' in request.resolver_match.url_name %}active{% endif %}">
+  <i class="bi bi-eyedropper"></i> Laboratory Orders
+</a>
+
+<div class="nav-section-label">Doctors</div>
+<a href="{% url 'doctor_list' %}" class="nav-link {% if 'doctor' in request.resolver_match.url_name %}active{% endif %}">
+  <i class="bi bi-person-video3"></i> Doctor Availability
+</a>

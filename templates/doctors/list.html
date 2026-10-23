@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Doctors Directory — {{ hospital.name }}{% endblock %}
+{% block page_title %}Doctors Directory{% endblock %}
+
+{% block sidebar_links %}
+{% include "_role_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h4 class="fw-bold mb-1" style="color:#1a1f36;">Medical Staff & Doctors</h4>
+    <p class="text-muted mb-0" style="font-size:14px;">Consultants and specialists associated with {{ hospital.name }}</p>
+  </div>
+  {% if request.user.hospital_memberships.first.role == "HOSPITAL_ADMIN" or request.user.is_superuser %}
+  <a href="{% url 'doctor_create' %}" class="btn btn-primary px-3">
+    <i class="bi bi-person-plus-fill me-1"></i> Register Doctor
+  </a>
+  {% endif %}
+</div>
+
+<!-- Search & Department Filter -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius:12px;">
+  <div class="card-body p-3">
+    <form method="get" class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+          <input type="text" name="q" value="{{ q }}" class="form-control bg-light border-0" placeholder="Search doctor by name, specialty, code..." />
+        </div>
+      </div>
+      <div class="col-md-4">
+        <select name="department" class="form-select bg-light border-0">
+          <option value="">All Departments</option>
+          {% for dept in departments %}
+            <option value="{{ dept.pk }}" {% if dept_id == dept.pk|stringformat:'s' %}selected{% endif %}>{{ dept.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-secondary w-100">Filter</button>
+        {% if q or dept_id %}
+          <a href="{% url 'doctor_list' %}" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i></a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Doctors Table -->
+<div class="card border-0 shadow-sm" style="border-radius:12px;">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="font-size:14px;">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4">Doctor Name</th>
+            <th>Department</th>
+            <th>Specialization</th>
+            <th>Consultation Fee</th>
+            <th>Contact</th>
+            <th>Status</th>
+            <th class="pe-4 text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for doc in doctors %}
+          <tr>
+            <td class="ps-4">
+              <a href="{% url 'doctor_detail' doc.pk %}" class="fw-bold text-decoration-none text-dark d-block">
+                Dr. {{ doc.user.get_full_name }}
+              </a>
+              <small class="text-muted">Code: <code>{{ doc.employee_code }}</code></small>
+            </td>
+            <td><span class="badge bg-light text-dark border">{{ doc.department.name }}</span></td>
+            <td>
+              <div>{{ doc.specialization }}</div>
+              <small class="text-muted">{{ doc.qualification }}</small>
+            </td>
+            <td><strong>{{ hospital.settings.currency|default:'INR' }} {{ doc.consultation_fee }}</strong></td>
+            <td>
+              <div><i class="bi bi-phone me-1 text-muted"></i>{{ doc.contact_number }}</div>
+              <small class="text-muted"><i class="bi bi-envelope me-1"></i>{{ doc.user.email }}</small>
+            </td>
+            <td>
+              {% if doc.is_active %}
+                <span class="badge bg-success-subtle text-success">Active</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="pe-4 text-end">
+              <div class="btn-group">
+                <a href="{% url 'doctor_detail' doc.pk %}" class="btn btn-sm btn-outline-primary" title="View Schedule & Profile">
+                  <i class="bi bi-eye"></i>
+                </a>
+                {% if request.user.hospital_memberships.first.role == "HOSPITAL_ADMIN" or request.user.is_superuser %}
+                <a href="{% url 'doctor_edit' doc.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit Profile">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'doctor_delete' doc.pk %}" class="btn btn-sm btn-outline-danger" title="Deactivate">
+                  <i class="bi bi-person-x"></i>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center text-muted py-5">
+              No doctors found matching your criteria.
+              {% if request.user.hospital_memberships.first.role == "HOSPITAL_ADMIN" or request.user.is_superuser %}
+              <div class="mt-2">
+                <a href="{% url 'doctor_create' %}" class="btn btn-sm btn-primary">Register New Doctor</a>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

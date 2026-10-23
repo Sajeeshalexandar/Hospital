@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}{{ hospital.name }} — Overview{% endblock %}
+{% block page_title %}Hospital Overview{% endblock %}
+
+{% block sidebar_links %}
+{% include "super_admin/_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <h4 class="fw-bold mb-0" style="color:#1a1f36;">{{ hospital.name }}</h4>
+      {% if hospital.status == "ACTIVE" %}
+        <span class="badge bg-success-subtle text-success">Active</span>
+      {% elif hospital.status == "INACTIVE" %}
+        <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
+      {% else %}
+        <span class="badge bg-danger-subtle text-danger">{{ hospital.status }}</span>
+      {% endif %}
+    </div>
+    <p class="text-muted mb-0" style="font-size:14px;">Registration No: <code>{{ hospital.registration_number }}</code> · Registered on {{ hospital.created_at|date:"d M Y" }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'hospital_list' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i> Back
+    </a>
+    <a href="{% url 'hospital_edit' hospital.pk %}" class="btn btn-primary btn-sm">
+      <i class="bi bi-pencil me-1"></i> Edit Hospital
+    </a>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- General Information Card -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h6 class="fw-bold mb-0"><i class="bi bi-info-circle text-primary me-2"></i>General Information</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3" style="font-size:14px;">
+          <div class="col-sm-4 text-muted">Email</div>
+          <div class="col-sm-8 fw-semibold">{{ hospital.email }}</div>
+
+          <div class="col-sm-4 text-muted">Phone</div>
+          <div class="col-sm-8">{{ hospital.phone }}</div>
+
+          <div class="col-sm-4 text-muted">Address</div>
+          <div class="col-sm-8">{{ hospital.address }}, {{ hospital.city }}, {{ hospital.state }}, {{ hospital.country }} - {{ hospital.postal_code }}</div>
+
+          <div class="col-sm-4 text-muted">Template</div>
+          <div class="col-sm-8">{{ hospital.template.name|default:"Standard / Default" }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Operational Settings Card -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h6 class="fw-bold mb-0"><i class="bi bi-sliders text-primary me-2"></i>Hospital Settings</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3" style="font-size:14px;">
+          <div class="col-sm-6 text-muted">Timezone</div>
+          <div class="col-sm-6 fw-semibold">{{ settings_obj.timezone|default:"Asia/Kolkata" }}</div>
+
+          <div class="col-sm-6 text-muted">Currency</div>
+          <div class="col-sm-6 fw-semibold">{{ settings_obj.currency|default:"INR" }}</div>
+
+          <div class="col-sm-6 text-muted">Appointment Duration</div>
+          <div class="col-sm-6">{{ settings_obj.appointment_duration_minutes|default:30 }} minutes</div>
+
+          <div class="col-sm-6 text-muted">Online Appointments</div>
+          <div class="col-sm-6">
+            {% if settings_obj.allow_online_appointments %}
+              <span class="badge bg-success-subtle text-success">Enabled</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-secondary">Disabled</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Subscriptions Card -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius:12px;">
+  <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+    <h6 class="fw-bold mb-0"><i class="bi bi-credit-card text-primary me-2"></i>Subscriptions History</h6>
+    <a href="{% url 'subscription_create' %}?hospital={{ hospital.pk }}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-plus-circle me-1"></i> Assign New Plan
+    </a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="font-size:14px;">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4">Plan Name</th>
+            <th>Status</th>
+            <th>Duration</th>
+            <th>Start Date</th>
+            <th class="pe-4">End Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sub in subscriptions %}
+          <tr>
+            <td class="ps-4 fw-bold">{{ sub.plan.name }}</td>
+            <td>
+              {% if sub.status == "ACTIVE" %}
+                <span class="badge bg-success-subtle text-success">Active</span>
+              {% elif sub.status == "TRIAL" %}
+                <span class="badge bg-info-subtle text-info">Trial</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary">{{ sub.status }}</span>
+              {% endif %}
+            </td>
+            <td>{{ sub.plan.duration_days }} days</td>
+            <td class="text-muted">{{ sub.start_date|date:"d M Y" }}</td>
+            <td class="pe-4 text-muted">{{ sub.end_date|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-3">No subscriptions assigned yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Hospital Memberships Card -->
+<div class="card border-0 shadow-sm" style="border-radius:12px;">
+  <div class="card-header bg-white py-3 border-bottom">
+    <h6 class="fw-bold mb-0"><i class="bi bi-people text-primary me-2"></i>Staff & User Memberships</h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="font-size:14px;">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4">User</th>
+            <th>Role</th>
+            <th>Active Status</th>
+            <th class="pe-4">Joined Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for mem in memberships %}
+          <tr>
+            <td class="ps-4 fw-semibold">{{ mem.user.email }}</td>
+            <td><span class="badge bg-primary-subtle text-primary">{{ mem.get_role_display }}</span></td>
+            <td>
+              {% if mem.is_active %}
+                <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Active</span>
+              {% else %}
+                <span class="text-muted"><i class="bi bi-x-circle me-1"></i>Inactive</span>
+              {% endif %}
+            </td>
+            <td class="pe-4 text-muted">{{ mem.joined_at|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="text-center text-muted py-3">No members registered yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

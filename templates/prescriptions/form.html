@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Initiate Prescription — {{ hospital.name }}{% endblock %}
+{% block page_title %}Write Prescription{% endblock %}
+
+{% block sidebar_links %}
+{% include "_role_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h4 class="fw-bold mb-1" style="color:#1a1f36;">Initiate Prescription</h4>
+        <p class="text-muted mb-0" style="font-size:14px;">
+          For Patient: <strong>{{ appt.patient.user.get_full_name|default:appt.patient.patient_id_code }}</strong> (<code>{{ appt.patient.patient_id_code }}</code>) · Dr. {{ appt.doctor.user.get_full_name }}
+        </p>
+      </div>
+      <a href="{% url 'appointment_detail' appt.pk %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Appointment
+      </a>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius:12px;">
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Prescription Number</label>
+            <input type="text" name="prescription_number" value="{{ form.prescription_number.value|default:'' }}" class="form-control {% if form.prescription_number.errors %}is-invalid{% endif %}" placeholder="Leave blank to auto-generate (e.g. RX-2026-0001)">
+            <div class="form-text">Optional. If empty, the system automatically assigns the next available sequential number.</div>
+            {% for error in form.prescription_number.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">General Instructions / Dietary Advice / Notes</label>
+            <textarea name="notes" rows="3" class="form-control {% if form.notes.errors %}is-invalid{% endif %}" placeholder="e.g. Low sodium diet, drink plenty of water, avoid strenuous physical activities...">{{ form.notes.value|default:'' }}</textarea>
+            {% for error in form.notes.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <a href="{% url 'appointment_detail' appt.pk %}" class="btn btn-light px-4">Cancel</a>
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-arrow-right-circle me-1"></i> Continue to Add Medicines
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Super Admin Dashboard{% endblock %}
+{% block page_title %}Super Admin Dashboard{% endblock %}
+
+{% block sidebar_links %}
+{% include "super_admin/_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Welcome Banner ──────────────────────────────────────── -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h4 class="fw-bold mb-1" style="color:#1a1f36;">
+      👋 Welcome, {{ request.user.get_full_name|default:request.user.email }}
+    </h4>
+    <p class="text-muted mb-0" style="font-size:14px;">
+      Super Admin &nbsp;·&nbsp; Multi-Tenant Platform Management
+    </p>
+  </div>
+  <a href="{% url 'hospital_create' %}" class="btn btn-primary btn-sm px-4">
+    <i class="bi bi-plus-circle me-1"></i> Register Hospital
+  </a>
+</div>
+
+<!-- ── Stat Cards ──────────────────────────────────────────── -->
+<div class="row g-4 mb-4">
+
+  <div class="col-md-3">
+    <div class="stat-card bg-white">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="stat-label">Total Hospitals</span>
+        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-building"></i>
+        </div>
+      </div>
+      <div class="stat-number">{{ total_hospitals }}</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card bg-white">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="stat-label">Active Hospitals</span>
+        <div class="stat-icon bg-success bg-opacity-10 text-success">
+          <i class="bi bi-building-check"></i>
+        </div>
+      </div>
+      <div class="stat-number text-success">{{ active_hospitals }}</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card bg-white">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="stat-label">Registered Users</span>
+        <div class="stat-icon bg-info bg-opacity-10 text-info">
+          <i class="bi bi-people"></i>
+        </div>
+      </div>
+      <div class="stat-number">{{ total_users }}</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card bg-white">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="stat-label">Active Memberships</span>
+        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+          <i class="bi bi-person-badge"></i>
+        </div>
+      </div>
+      <div class="stat-number">{{ total_memberships }}</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Recent Hospitals Table ──────────────────────────────── -->
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-body p-0">
+        <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
+          <h6 class="fw-bold mb-0">Registered Hospitals</h6>
+          <a href="{% url 'hospital_list' %}" class="btn btn-outline-primary btn-sm">Manage All</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" style="font-size:14px;">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Hospital Name</th>
+                <th>City</th>
+                <th>Status</th>
+                <th class="pe-4 text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for hospital in recent_hospitals %}
+              <tr>
+                <td class="ps-4 fw-semibold">
+                  <a href="{% url 'hospital_detail' hospital.pk %}" class="text-decoration-none" style="color:#1a1f36;">
+                    {{ hospital.name }}
+                  </a>
+                </td>
+                <td class="text-muted">{{ hospital.city }}, {{ hospital.state }}</td>
+                <td>
+                  {% if hospital.status == "ACTIVE" %}
+                    <span class="badge bg-success-subtle text-success">Active</span>
+                  {% elif hospital.status == "INACTIVE" %}
+                    <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
+                  {% else %}
+                    <span class="badge bg-danger-subtle text-danger">{{ hospital.status }}</span>
+                  {% endif %}
+                </td>
+                <td class="pe-4 text-end">
+                  <a href="{% url 'hospital_edit' hospital.pk %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center text-muted py-4">
+                  No hospitals registered yet.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-body p-0">
+        <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
+          <h6 class="fw-bold mb-0"><i class="bi bi-shield-check me-1 text-success"></i> Recent Audit Events</h6>
+          <a href="{% url 'audit_log_list' %}" class="btn btn-outline-primary btn-sm">Full Trail</a>
+        </div>
+        <div class="list-group list-group-flush">
+          {% for a in recent_audits %}
+          <div class="list-group-item px-4 py-3">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <span class="badge bg-light text-dark border">{{ a.action }}</span>
+              <small class="text-muted">{{ a.created_at|date:"M d, H:i" }}</small>
+            </div>
+            <div class="text-muted small text-truncate" title="{{ a.description }}">{{ a.description }}</div>
+            <div class="text-muted small mt-1" style="font-size:11px;">
+              By: {{ a.actor.email|default:"System" }} {% if a.hospital %}· {{ a.hospital.name }}{% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <div class="text-center py-4 text-muted small">No audit activity logged.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

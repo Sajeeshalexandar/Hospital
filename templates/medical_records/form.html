@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} — {{ hospital.name }}{% endblock %}
+{% block page_title %}{{ action }}{% endblock %}
+
+{% block sidebar_links %}
+{% include "_role_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h4 class="fw-bold mb-1" style="color:#1a1f36;">{{ action }}</h4>
+        <p class="text-muted mb-0" style="font-size:14px;">
+          Patient: <strong>{{ appt.patient.user.get_full_name|default:appt.patient.patient_id_code }}</strong> (<code>{{ appt.patient.patient_id_code }}</code>) · Dr. {{ appt.doctor.user.get_full_name }}
+        </p>
+      </div>
+      <a href="{% url 'appointment_detail' appt.pk %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Appointment
+      </a>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius:12px;">
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Symptoms & Clinical Presentation <span class="text-danger">*</span></label>
+            <textarea name="symptoms" rows="3" class="form-control {% if form.symptoms.errors %}is-invalid{% endif %}" placeholder="Patient's reported complaints, vitals, observed symptoms..." required>{{ form.symptoms.value|default:appt.reason_for_visit }}</textarea>
+            {% for error in form.symptoms.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Clinical Diagnosis <span class="text-danger">*</span></label>
+            <textarea name="diagnosis" rows="3" class="form-control {% if form.diagnosis.errors %}is-invalid{% endif %}" placeholder="Primary diagnosis, differential conclusions, severity..." required>{{ form.diagnosis.value|default:'' }}</textarea>
+            {% for error in form.diagnosis.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Treatment Notes & Care Plan</label>
+            <textarea name="treatment_notes" rows="3" class="form-control {% if form.treatment_notes.errors %}is-invalid{% endif %}" placeholder="Recommendations, procedural notes, dietary/lifestyle instructions...">{{ form.treatment_notes.value|default:'' }}</textarea>
+            {% for error in form.treatment_notes.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Recommended Follow-up Date</label>
+              <input type="date" name="follow_up_date" value="{{ form.follow_up_date.value|date:'Y-m-d'|default:'' }}" class="form-control {% if form.follow_up_date.errors %}is-invalid{% endif %}">
+              <div class="form-text">Optional. Date for patient's next review.</div>
+              {% for error in form.follow_up_date.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <a href="{% url 'appointment_detail' appt.pk %}" class="btn btn-light px-4">Cancel</a>
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-check-circle me-1"></i> Save Medical Record
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

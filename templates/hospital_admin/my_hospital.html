@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Hospital Profile — {{ hospital.name }}{% endblock %}
+{% block page_title %}Hospital Profile{% endblock %}
+
+{% block sidebar_links %}
+{% include "hospital_admin/_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <h4 class="fw-bold mb-0" style="color:#1a1f36;">{{ hospital.name }}</h4>
+      <span class="badge bg-success-subtle text-success">Tenant Profile</span>
+    </div>
+    <p class="text-muted mb-0" style="font-size:14px;">Registration Number: <code>{{ hospital.registration_number }}</code></p>
+  </div>
+  <a href="{% url 'my_hospital_settings' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-gear me-1"></i> Configure Settings
+  </a>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Profile Summary -->
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h6 class="fw-bold mb-0"><i class="bi bi-hospital text-primary me-2"></i>Hospital Details</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3" style="font-size:14px;">
+          <div class="col-sm-4 text-muted">Email</div>
+          <div class="col-sm-8 fw-semibold">{{ hospital.email }}</div>
+
+          <div class="col-sm-4 text-muted">Contact Phone</div>
+          <div class="col-sm-8">{{ hospital.phone }}</div>
+
+          <div class="col-sm-4 text-muted">Address</div>
+          <div class="col-sm-8">{{ hospital.address }}</div>
+
+          <div class="col-sm-4 text-muted">City & State</div>
+          <div class="col-sm-8">{{ hospital.city }}, {{ hospital.state }}, {{ hospital.country }} (Postal: {{ hospital.postal_code|default:'N/A' }})</div>
+
+          <div class="col-sm-4 text-muted">Status</div>
+          <div class="col-sm-8">
+            <span class="badge bg-success-subtle text-success">{{ hospital.status }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Operational Configuration -->
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+        <h6 class="fw-bold mb-0"><i class="bi bi-sliders text-primary me-2"></i>Settings Overview</h6>
+        <a href="{% url 'my_hospital_settings' %}" class="btn btn-sm btn-outline-primary py-0">Edit</a>
+      </div>
+      <div class="card-body">
+        <div class="row g-3" style="font-size:14px;">
+          <div class="col-6 text-muted">Timezone:</div>
+          <div class="col-6 fw-semibold text-end">{{ settings_obj.timezone|default:"Asia/Kolkata" }}</div>
+
+          <div class="col-6 text-muted">Currency:</div>
+          <div class="col-6 fw-semibold text-end">{{ settings_obj.currency|default:"INR" }}</div>
+
+          <div class="col-6 text-muted">Slot Duration:</div>
+          <div class="col-6 text-end">{{ settings_obj.appointment_duration_minutes|default:30 }} mins</div>
+
+          <div class="col-6 text-muted">Online Bookings:</div>
+          <div class="col-6 text-end">
+            {% if settings_obj.allow_online_appointments %}
+              <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Active</span>
+            {% else %}
+              <span class="text-secondary"><i class="bi bi-x-circle me-1"></i>Disabled</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Active Departments in Hospital -->
+<div class="card border-0 shadow-sm" style="border-radius:12px;">
+  <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+    <h6 class="fw-bold mb-0"><i class="bi bi-diagram-3 text-primary me-2"></i>Active Departments ({{ departments|length }})</h6>
+    <a href="{% url 'department_create' %}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-plus-circle me-1"></i> Add Department
+    </a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="font-size:14px;">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4">Department Name</th>
+            <th>Description</th>
+            <th class="pe-4 text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for dept in departments %}
+          <tr>
+            <td class="ps-4 fw-semibold">{{ dept.name }}</td>
+            <td class="text-muted">{{ dept.description|default:"—"|truncatewords:10 }}</td>
+            <td class="pe-4 text-end">
+              <a href="{% url 'department_edit' dept.pk %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-pencil"></i>
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="text-center text-muted py-3">No departments created yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

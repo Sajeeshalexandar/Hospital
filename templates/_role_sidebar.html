@@ -1,0 +1,17 @@
+{% if request.user.is_superuser %}
+  {% include "super_admin/_sidebar.html" %}
+{% else %}
+  {% for mem in request.user.hospital_memberships.all %}
+    {% if mem.is_active %}
+      {% if mem.role == "RECEPTIONIST" %}
+        {% include "receptionist/_sidebar.html" %}
+      {% elif mem.role == "DOCTOR" %}
+        {% include "doctor/_sidebar.html" %}
+      {% else %}
+        {% include "hospital_admin/_sidebar.html" %}
+      {% endif %}
+    {% endif %}
+  {% empty %}
+    {% include "hospital_admin/_sidebar.html" %}
+  {% endfor %}
+{% endif %}
