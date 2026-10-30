@@ -1,0 +1,32 @@
+<div class="nav-section-label">Patient Portal</div>
+<a href="{% url 'patient_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'patient_dashboard' %}active{% endif %}">
+  <i class="bi bi-speedometer2"></i> My Health Dashboard
+</a>
+<a href="{% url 'book_appointment' %}" class="nav-link">
+  <i class="bi bi-calendar2-plus"></i> Book Consultation
+</a>
+
+<div class="nav-section-label">My Medical Care</div>
+<a href="#appointments-section" class="nav-link">
+  <i class="bi bi-calendar-check"></i> Appointments
+</a>
+<a href="#records-section" class="nav-link">
+  <i class="bi bi-file-earmark-medical"></i> Clinical Records
+</a>
+<a href="#prescriptions-section" class="nav-link">
+  <i class="bi bi-capsule"></i> Prescriptions
+</a>
+<a href="#labs-section" class="nav-link">
+  <i class="bi bi-eyedropper"></i> Lab Test Reports
+</a>
+<a href="#invoices-section" class="nav-link">
+  <i class="bi bi-receipt-cutoff"></i> Invoices & Bills
+</a>
+
+<div class="nav-section-label">Account</div>
+<a href="#profile-section" class="nav-link">
+  <i class="bi bi-person-gear"></i> My Profile & Contact
+</a>
+<a href="{% url 'landing' %}" class="nav-link">
+  <i class="bi bi-house"></i> Public Website
+</a>

@@ -2,6 +2,9 @@
 <a href="{% url 'super_admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_dashboard' %}active{% endif %}">
   <i class="bi bi-speedometer2"></i> Dashboard
 </a>
+<a href="{% url 'super_admin_analytics' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_analytics' %}active{% endif %}">
+  <i class="bi bi-graph-up-arrow"></i> Platform Analytics & Health
+</a>
 <a href="{% url 'hospital_list' %}" class="nav-link {% if 'hospital' in request.resolver_match.url_name %}active{% endif %}">
   <i class="bi bi-building"></i> Hospitals
 </a>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clinical Specialties & Departments — MediSaaS</title>
+
+  <!-- Google Fonts & Bootstrap 5 CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    .service-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 32px;
+      transition: all 0.2s ease;
+      height: 100%;
+    }
+    .service-card:hover {
+      box-shadow: 0 16px 32px rgba(0,0,0,0.06);
+      transform: translateY(-3px);
+      border-color: #bae6fd;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Simple Nav -->
+  <header class="bg-white border-bottom py-3">
+    <div class="container d-flex align-items-center justify-content-between">
+      <a href="{% url 'landing' %}" class="d-flex align-items-center gap-2 text-decoration-none text-dark fw-bold fs-5">
+        <i class="bi bi-heart-pulse-fill text-primary fs-3"></i>
+        <span>MediSaaS Clinical Specialties</span>
+      </a>
+      <div class="d-flex gap-2">
+        <a href="{% url 'book_appointment' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+          <i class="bi bi-calendar-plus me-1"></i> Book Appointment
+        </a>
+        <a href="{% url 'landing' %}" class="btn btn-light btn-sm rounded-pill px-3 border">
+          <i class="bi bi-house me-1"></i> Home
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="py-5">
+    <div class="container">
+      
+      <div class="text-center mb-5">
+        <span class="badge bg-primary-subtle text-primary px-3 py-1 rounded-pill fw-semibold">Multi-Disciplinary Care</span>
+        <h2 class="fw-bold mt-2">Specialized Medical Services</h2>
+        <p class="text-muted max-w-lg mx-auto">
+          Explore our certified healthcare institutes equipped with advanced clinical diagnostic equipment, surgical suites, and round-the-clock emergency care.
+        </p>
+      </div>
+
+      <div class="row g-4">
+        {% for d in departments %}
+          <div class="col-md-6 col-lg-4">
+            <div class="service-card d-flex flex-column">
+              <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; font-size: 24px;">
+                <i class="bi bi-heart-pulse"></i>
+              </div>
+              <h5 class="fw-bold text-dark mb-1">{{ d.name }}</h5>
+              <div class="text-muted small mb-3"><i class="bi bi-building me-1"></i>{{ d.hospital.name }}</div>
+              <p class="text-muted small mb-4 flex-grow-1">
+                {{ d.description|default:"Comprehensive diagnosis, state-of-the-art outpatient consultation, pre-operative screening, and personalized medical follow-up." }}
+              </p>
+              <div class="mt-auto">
+                <a href="{% url 'doctors_directory' %}?department={{ d.id }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 w-100">
+                  Find {{ d.name }} Specialists <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="col-12 text-center text-muted py-5">No departments found.</div>
+        {% endfor %}
+      </div>
+
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

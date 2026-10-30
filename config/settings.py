@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "prescriptions",
     "laboratory",
     "audit_logs",
+    "website",
 ]
 
 MIDDLEWARE = [
@@ -150,9 +151,9 @@ MAILERS = {
 
 AUTH_USER_MODEL = 'accounts.User'
 
-LOGIN_URL = 'login'
+LOGIN_URL = 'portals_gateway'
 LOGIN_REDIRECT_URL = 'dashboard_dispatch'  # dispatcher view that reads role from DB
-LOGOUT_REDIRECT_URL = 'login'
+LOGOUT_REDIRECT_URL = 'portals_gateway'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

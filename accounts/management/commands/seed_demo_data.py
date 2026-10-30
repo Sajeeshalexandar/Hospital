@@ -28,6 +28,17 @@ User = get_user_model()
 class Command(BaseCommand):
     help = "Seed database with realistic multi-tenant demonstration data for all 4 roles"
 
+    def _set_demo_membership(self, user, hospital, role):
+        HospitalMembership.objects.filter(
+            user=user,
+            is_active=True,
+        ).exclude(hospital=hospital).update(is_active=False)
+        return HospitalMembership.objects.update_or_create(
+            user=user,
+            hospital=hospital,
+            defaults={"role": role, "is_active": True},
+        )
+
     @transaction.atomic
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE("Seeding MediSaaS demo dataset..."))
@@ -158,11 +169,7 @@ class Command(BaseCommand):
         )
         apollo_admin_user.set_password("AdminPass@123")
         apollo_admin_user.save()
-        HospitalMembership.objects.update_or_create(
-            user=apollo_admin_user,
-            hospital=apollo,
-            defaults={"role": HospitalMembership.Role.HOSPITAL_ADMIN, "is_active": True},
-        )
+        self._set_demo_membership(apollo_admin_user, apollo, HospitalMembership.Role.HOSPITAL_ADMIN)
         self.stdout.write(self.style.SUCCESS(f"[User] Hospital Admin: apollo.admin@medisaas.com / AdminPass@123"))
 
         # 7. Doctors
@@ -176,11 +183,11 @@ class Command(BaseCommand):
         )
         doc1_user.set_password("DoctorPass@123")
         doc1_user.save()
-        HospitalMembership.objects.update_or_create(
+        self._set_demo_membership(doc1_user, apollo, HospitalMembership.Role.DOCTOR)
+        DoctorProfile.objects.filter(
             user=doc1_user,
-            hospital=apollo,
-            defaults={"role": HospitalMembership.Role.DOCTOR, "is_active": True},
-        )
+            is_active=True,
+        ).exclude(hospital=apollo).update(is_active=False)
         dr_ramesh, _ = DoctorProfile.objects.update_or_create(
             hospital=apollo,
             employee_code="DOC-APOLLO-001",
@@ -216,11 +223,11 @@ class Command(BaseCommand):
         )
         doc2_user.set_password("DoctorPass@123")
         doc2_user.save()
-        HospitalMembership.objects.update_or_create(
+        self._set_demo_membership(doc2_user, apollo, HospitalMembership.Role.DOCTOR)
+        DoctorProfile.objects.filter(
             user=doc2_user,
-            hospital=apollo,
-            defaults={"role": HospitalMembership.Role.DOCTOR, "is_active": True},
-        )
+            is_active=True,
+        ).exclude(hospital=apollo).update(is_active=False)
         dr_anita, _ = DoctorProfile.objects.update_or_create(
             hospital=apollo,
             employee_code="DOC-APOLLO-002",
@@ -256,11 +263,7 @@ class Command(BaseCommand):
         )
         receptionist_user.set_password("StaffPass@123")
         receptionist_user.save()
-        HospitalMembership.objects.update_or_create(
-            user=receptionist_user,
-            hospital=apollo,
-            defaults={"role": HospitalMembership.Role.RECEPTIONIST, "is_active": True},
-        )
+        self._set_demo_membership(receptionist_user, apollo, HospitalMembership.Role.RECEPTIONIST)
         StaffProfile.objects.update_or_create(
             hospital=apollo,
             employee_code="STF-APOLLO-001",
@@ -274,7 +277,32 @@ class Command(BaseCommand):
         )
         self.stdout.write(self.style.SUCCESS(f"[User] Receptionist: priya.reception@apollo.com / StaffPass@123"))
 
-        # 9. Patients
+        # 9. Hospital Staff
+        staff_user, _ = User.objects.get_or_create(
+            email="staff.demo@apollo.com",
+            defaults={
+                "username": "staff.demo@apollo.com",
+                "first_name": "Arjun",
+                "last_name": "Rao",
+            },
+        )
+        staff_user.set_password("StaffPass@123")
+        staff_user.save()
+        self._set_demo_membership(staff_user, apollo, HospitalMembership.Role.STAFF)
+        StaffProfile.objects.update_or_create(
+            hospital=apollo,
+            employee_code="STF-APOLLO-002",
+            defaults={
+                "user": staff_user,
+                "job_title": "Hospital Operations Assistant",
+                "contact_number": "+91 98200 66778",
+                "date_of_joining": timezone.now().date() - timedelta(days=90),
+                "is_active": True,
+            },
+        )
+        self.stdout.write(self.style.SUCCESS(f"[User] Staff: staff.demo@apollo.com / StaffPass@123"))
+
+        # 10. Patients
         patient1_user, _ = User.objects.get_or_create(
             email="anil.kapoor@example.com",
             defaults={
@@ -285,6 +313,10 @@ class Command(BaseCommand):
         )
         patient1_user.set_password("PatientPass@123")
         patient1_user.save()
+        PatientProfile.objects.filter(
+            user=patient1_user,
+            is_active=True,
+        ).exclude(hospital=apollo).update(is_active=False)
         patient1, _ = PatientProfile.objects.update_or_create(
             hospital=apollo,
             patient_id_code="PAT-2026-0001",
@@ -310,6 +342,10 @@ class Command(BaseCommand):
         )
         patient2_user.set_password("PatientPass@123")
         patient2_user.save()
+        PatientProfile.objects.filter(
+            user=patient2_user,
+            is_active=True,
+        ).exclude(hospital=apollo).update(is_active=False)
         patient2, _ = PatientProfile.objects.update_or_create(
             hospital=apollo,
             patient_id_code="PAT-2026-0002",
@@ -370,12 +406,12 @@ class Command(BaseCommand):
         )
 
         rx, _ = Prescription.objects.update_or_create(
-            appointment=appt1,
+            hospital=apollo,
+            prescription_number="RX-2026-0001",
             defaults={
-                "hospital": apollo,
+                "appointment": appt1,
                 "doctor": dr_ramesh,
                 "patient": patient1,
-                "prescription_number": "RX-2026-0001",
                 "status": Prescription.Status.ISSUED,
                 "issued_at": now - timedelta(days=2, hours=2),
                 "notes": "Review blood pressure log after 14 days. Avoid OTC decongestants.",
@@ -417,11 +453,11 @@ class Command(BaseCommand):
             },
         )
         LabReport.objects.update_or_create(
-            order=lab_order,
+            hospital=apollo,
+            report_number="LAB-2026-0001",
             defaults={
-                "hospital": apollo,
+                "order": lab_order,
                 "patient": patient1,
-                "report_number": "LAB-2026-0001",
                 "result_summary": (
                     "Total Cholesterol: 215 mg/dL [Desirable: <200]\n"
                     "HDL Cholesterol: 44 mg/dL [Normal: >40]\n"
@@ -601,3 +637,5 @@ class Command(BaseCommand):
         self.stdout.write("  Hospital Admin:  apollo.admin@medisaas.com    / AdminPass@123")
         self.stdout.write("  Doctor:          dr.ramesh@apollo.com         / DoctorPass@123")
         self.stdout.write("  Receptionist:    priya.reception@apollo.com   / StaffPass@123")
+        self.stdout.write("  Staff:           staff.demo@apollo.com         / StaffPass@123")
+        self.stdout.write("  Patient:         anil.kapoor@example.com       / PatientPass@123")

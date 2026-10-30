@@ -127,7 +127,7 @@ def my_hospital_profile(request):
     hospital = get_user_hospital(request.user)
     if not hospital:
         messages.error(request, "No hospital associated with your account.")
-        return redirect("login")
+        return redirect("hospital_admin_login")
 
     settings_obj = getattr(hospital, "settings", None)
     departments  = hospital.departments.filter(is_active=True).order_by("name")
@@ -149,7 +149,7 @@ def my_hospital_settings(request):
     hospital = get_user_hospital(request.user)
     if not hospital:
         messages.error(request, "No hospital associated with your account.")
-        return redirect("login")
+        return redirect("hospital_admin_login")
 
     # get_or_create protects against missing settings row
     settings_obj, _ = HospitalSettings.objects.get_or_create(hospital=hospital)

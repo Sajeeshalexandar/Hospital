@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Role Authentication & Permissions Gateway — MediSaaS</title>
+
+  <!-- Google Fonts & Bootstrap 5 CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      min-height: 100vh;
+    }
+    .portal-panel-card {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px 24px;
+      transition: all 0.25s ease;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .portal-panel-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    .cred-tag {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body class="py-5">
+
+  <div class="container">
+    
+    <!-- Top Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-5 border-bottom pb-4 border-secondary">
+      <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'landing' %}" class="d-flex align-items-center justify-content-center bg-primary text-white rounded-3" style="width: 48px; height: 48px; font-size: 24px; text-decoration: none;">
+          <i class="bi bi-heart-pulse-fill"></i>
+        </a>
+        <div>
+          <h3 class="fw-bold mb-0 text-white">MediSaaS Role Authentication & Access Control Gateway</h3>
+          <span class="text-slate-400 small">Role Matrix, Module Authorizations, and Dummy Testing Credentials</span>
+        </div>
+      </div>
+      <div>
+        <a href="{% url 'landing' %}" class="btn btn-outline-light rounded-pill px-4 btn-sm">
+          <i class="bi bi-arrow-left me-1"></i> Back to Patient Website
+        </a>
+      </div>
+    </div>
+
+    <!-- Security & Permission Rules Banner -->
+    <div class="card border-0 rounded-4 p-4 mb-5" style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.12) !important;">
+      <h5 class="fw-bold text-white mb-3"><i class="bi bi-shield-check text-success me-2"></i>Security & Permission Enforcement Rules</h5>
+      <div class="row g-3 small text-slate-300">
+        <div class="col-md-4">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-check-circle text-primary mt-1"></i>
+            <div><strong>Authentication Required:</strong> Users must be authenticated before accessing protected modules.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-check-circle text-primary mt-1"></i>
+            <div><strong>Multi-Tenant Isolation:</strong> Hospital users can strictly access only their own hospital's data.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-check-circle text-primary mt-1"></i>
+            <div><strong>Patient Data Privacy:</strong> Patients can access strictly their own healthcare and personal information.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-check-circle text-primary mt-1"></i>
+            <div><strong>Backend Enforcement:</strong> Role checks are validated server-side on all View, Create, Edit, Delete actions.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-check-circle text-primary mt-1"></i>
+            <div><strong>Staff Permissions:</strong> Hospital staff can access only functions assigned by their Hospital Admin.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-check-circle text-primary mt-1"></i>
+            <div><strong>Access Denial:</strong> Unauthorized access attempts are rejected and recorded in the audit trail.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Role Portals Grid -->
+    <div class="row g-4 mb-5">
+      
+      <!-- 1. Super Admin -->
+      <div class="col-md-6 col-lg-4">
+        <div class="portal-panel-card">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <span class="badge bg-danger-subtle text-danger px-3 py-1 rounded-pill fw-semibold">Super Admin (Full Platform)</span>
+            <i class="bi bi-shield-lock fs-4 text-danger"></i>
+          </div>
+          <h4 class="fw-bold text-white mb-2">Super Admin</h4>
+          <p class="text-slate-400 small mb-3 flex-grow-1">
+            <strong>Responsibilities:</strong> Manages hospitals, subscription plans, templates, roles, platform health, and overall system configuration.
+          </p>
+
+          <div class="cred-tag mb-3">
+            <div><strong class="text-white">Email:</strong> superadmin@medisaas.com</div>
+            <div><strong class="text-white">Password:</strong> SuperAdminPass@123</div>
+          </div>
+
+          <div class="small text-slate-400 mb-4">
+            <div><strong>Login URL:</strong> <a href="{% url 'super_admin_login' %}" class="text-danger text-decoration-none">/login/super-admin/</a></div>
+            <div><strong>Dashboard:</strong> <span class="text-slate-300">/super-admin/dashboard/</span></div>
+            <div><strong>Analytics:</strong> <span class="text-slate-300">/super-admin/analytics/</span></div>
+            <div><strong>Django Admin:</strong> <a href="/admin/" class="text-danger text-decoration-none">/admin/</a></div>
+          </div>
+
+          <div class="mt-auto">
+            <a href="{% url 'super_admin_login' %}" class="btn btn-danger w-100 rounded-pill fw-bold">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Super Admin Login
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Hospital Admin -->
+      <div class="col-md-6 col-lg-4">
+        <div class="portal-panel-card">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <span class="badge bg-primary-subtle text-primary px-3 py-1 rounded-pill fw-semibold">Hospital Admin (Full Hospital)</span>
+            <i class="bi bi-building-gear fs-4 text-primary"></i>
+          </div>
+          <h4 class="fw-bold text-white mb-2">Hospital Admin</h4>
+          <p class="text-slate-400 small mb-3 flex-grow-1">
+            <strong>Responsibilities:</strong> Hospital profile, subscriptions, templates, departments, doctor roster, doctor commission %, patients, appointments, billing, and staff.
+          </p>
+
+          <div class="cred-tag mb-3">
+            <div><strong class="text-white">Email:</strong> apollo.admin@medisaas.com</div>
+            <div><strong class="text-white">Password:</strong> AdminPass@123</div>
+          </div>
+
+          <div class="small text-slate-400 mb-4">
+            <div><strong>Login URL:</strong> <a href="{% url 'hospital_admin_login' %}" class="text-primary text-decoration-none">/login/hospital-admin/</a></div>
+            <div><strong>Dashboard:</strong> <span class="text-slate-300">/hospital-admin/dashboard/</span></div>
+            <div><strong>Analytics:</strong> <span class="text-slate-300">/hospital-admin/analytics/</span></div>
+            <div><strong>AdminSite:</strong> <a href="/admin/hospital/" class="text-primary text-decoration-none">/admin/hospital/</a></div>
+          </div>
+
+          <div class="mt-auto">
+            <a href="{% url 'hospital_admin_login' %}" class="btn btn-primary w-100 rounded-pill fw-bold">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Hospital Admin Login
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Doctor -->
+      <div class="col-md-6 col-lg-4">
+        <div class="portal-panel-card">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <span class="badge bg-info-subtle text-info px-3 py-1 rounded-pill fw-semibold">Doctor (Clinical Access)</span>
+            <i class="bi bi-stethoscope fs-4 text-info"></i>
+          </div>
+          <h4 class="fw-bold text-white mb-2">Doctor Portal</h4>
+          <p class="text-slate-400 small mb-3 flex-grow-1">
+            <strong>Responsibilities:</strong> Manages assigned appointments queue, patient medical records, symptoms, diagnoses, digital prescriptions, and diagnostic lab orders.
+          </p>
+
+          <div class="cred-tag mb-3">
+            <div><strong class="text-white">Email:</strong> dr.ramesh@apollo.com</div>
+            <div><strong class="text-white">Password:</strong> DoctorPass@123</div>
+          </div>
+
+          <div class="small text-slate-400 mb-4">
+            <div><strong>Login URL:</strong> <a href="{% url 'doctor_login' %}" class="text-info text-decoration-none">/login/doctor/</a></div>
+            <div><strong>Dashboard:</strong> <span class="text-slate-300">/doctor/dashboard/</span></div>
+            <div><strong>AdminSite:</strong> <a href="/admin/doctor/" class="text-info text-decoration-none">/admin/doctor/</a></div>
+          </div>
+
+          <div class="mt-auto">
+            <a href="{% url 'doctor_login' %}" class="btn btn-info w-100 rounded-pill fw-bold text-dark">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Doctor Login
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Hospital Staff / Receptionist -->
+      <div class="col-md-6 col-lg-6">
+        <div class="portal-panel-card">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <span class="badge bg-warning-subtle text-warning px-3 py-1 rounded-pill fw-semibold">Hospital Staff (Assigned Functions)</span>
+            <i class="bi bi-person-badge fs-4 text-warning"></i>
+          </div>
+          <h4 class="fw-bold text-white mb-2">Hospital Staff & Receptionist Desk</h4>
+          <p class="text-slate-400 small mb-3 flex-grow-1">
+            <strong>Responsibilities:</strong> Front desk admissions, OPD patient registration, appointment scheduling, billing cashier receipts, and permitted patient records.
+          </p>
+
+          <div class="cred-tag mb-3">
+            <div><strong class="text-white">Email:</strong> staff.demo@apollo.com</div>
+            <div><strong class="text-white">Password:</strong> StaffPass@123</div>
+          </div>
+
+          <div class="small text-slate-400 mb-4">
+            <div><strong>Receptionist URL:</strong> <a href="{% url 'receptionist_login' %}" class="text-warning text-decoration-none">/login/receptionist/</a></div>
+            <div><strong>Staff URL:</strong> <a href="{% url 'staff_login' %}" class="text-warning text-decoration-none">/login/staff/</a></div>
+            <div><strong>Dashboard:</strong> <span class="text-slate-300">/receptionist/dashboard/ & /staff/dashboard/</span></div>
+            <div><strong>AdminSite:</strong> <a href="/admin/receptionist/" class="text-warning text-decoration-none">/admin/receptionist/</a></div>
+          </div>
+
+          <div class="mt-auto d-flex gap-2">
+            <a href="{% url 'receptionist_login' %}" class="btn btn-warning flex-grow-1 rounded-pill fw-bold text-dark">
+              Receptionist Login
+            </a>
+            <a href="{% url 'staff_login' %}" class="btn btn-outline-warning text-white flex-grow-1 rounded-pill fw-bold">
+              Staff Login
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Patient -->
+      <div class="col-md-6 col-lg-6">
+        <div class="portal-panel-card">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill fw-semibold">Patient (Own Data Only)</span>
+            <i class="bi bi-person-heart fs-4 text-success"></i>
+          </div>
+          <h4 class="fw-bold text-white mb-2">Patient Portal</h4>
+          <p class="text-slate-400 small mb-3 flex-grow-1">
+            <strong>Responsibilities:</strong> Views own personal profile, upcoming & past appointments, clinical medical records, digital prescriptions, lab test reports, invoices, and profile updates.
+          </p>
+
+          <div class="cred-tag mb-3">
+            <div><strong class="text-white">Email:</strong> anil.kapoor@example.com</div>
+            <div><strong class="text-white">Password:</strong> PatientPass@123</div>
+          </div>
+
+          <div class="small text-slate-400 mb-4">
+            <div><strong>Login URL:</strong> <a href="{% url 'patient_login' %}" class="text-success text-decoration-none">/login/patient/</a></div>
+            <div><strong>Dashboard:</strong> <span class="text-slate-300">/patient/dashboard/</span></div>
+            <div><strong>Self-Service:</strong> <a href="{% url 'patient_portal' %}" class="text-success text-decoration-none">/patient-portal/</a></div>
+          </div>
+
+          <div class="mt-auto">
+            <a href="{% url 'patient_login' %}" class="btn btn-success w-100 rounded-pill fw-bold">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Patient Portal Login
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

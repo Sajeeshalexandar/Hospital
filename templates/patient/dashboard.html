@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Portal — {{ patient.user.get_full_name }}{% endblock %}
+{% block page_title %}Patient Health & Consultation Portal{% endblock %}
+
+{% block sidebar_links %}
+  {% include "patient/_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+  <!-- ── Top Welcome & Patient Banner ─────────────────────────────────── -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
+    <div class="card-body p-4">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fs-2" style="width: 64px; height: 64px;">
+            <i class="bi bi-person-heart"></i>
+          </div>
+          <div>
+            <div class="d-flex align-items-center gap-2">
+              <h4 class="fw-bold mb-0 text-dark">{{ patient.user.get_full_name }}</h4>
+              <span class="badge bg-primary text-white font-monospace px-3 py-1">{{ patient.patient_id_code }}</span>
+            </div>
+            <p class="text-muted small mb-0 mt-1">
+              Registered at <strong>{{ hospital.name }}</strong> &bull; DOB: {{ patient.date_of_birth|date:"d M Y" }} &bull; Gender: {{ patient.get_gender_display }}
+            </p>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <a href="{% url 'book_appointment' %}" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold" style="background:#0284c7; border-color:#0284c7;">
+            <i class="bi bi-calendar-plus me-1"></i> Book New Appointment
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Next Upcoming Appointment Highlight ──────────────────────────── -->
+  {% if upcoming_appointment %}
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-primary text-white p-4" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+          <span class="badge bg-white text-primary px-3 py-1 rounded-pill fw-bold mb-2">Next Consultation</span>
+          <h4 class="fw-bold text-white mb-1">
+            Dr. {{ upcoming_appointment.doctor.user.get_full_name }} — {{ upcoming_appointment.department.name }}
+          </h4>
+          <p class="text-white-50 mb-0 small">
+            <i class="bi bi-clock me-1"></i> {{ upcoming_appointment.start_at|date:"l, d F Y at H:i" }} &bull; Reason: {{ upcoming_appointment.reason_for_visit }}
+          </p>
+        </div>
+        <div class="text-end">
+          <span class="badge bg-white text-dark px-3 py-2 rounded-pill fs-6 fw-bold">
+            Status: {{ upcoming_appointment.get_status_display }}
+          </span>
+          <div class="small text-white-50 mt-1">Please arrive 15 minutes before your time.</div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- ── Quick Patient Metrics ────────────────────────────────────────── -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-4 p-3 bg-primary-subtle text-primary">
+            <i class="bi bi-calendar2-check fs-4"></i>
+          </div>
+          <div>
+            <div class="text-muted small fw-semibold">APPOINTMENTS</div>
+            <div class="fs-4 fw-bold text-dark">{{ appointment_history|length }}</div>
+            <div class="small text-muted">Consultation History</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-4 p-3 bg-success-subtle text-success">
+            <i class="bi bi-capsule fs-4"></i>
+          </div>
+          <div>
+            <div class="text-muted small fw-semibold">PRESCRIPTIONS</div>
+            <div class="fs-4 fw-bold text-success">{{ prescriptions|length }}</div>
+            <div class="small text-muted">Medications Issued</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-4 p-3 bg-info-subtle text-info">
+            <i class="bi bi-eyedropper fs-4"></i>
+          </div>
+          <div>
+            <div class="text-muted small fw-semibold">LAB TEST ORDERS</div>
+            <div class="fs-4 fw-bold text-info">{{ lab_reports|length }}</div>
+            <div class="small text-muted">Diagnostics & Reports</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-4 p-3 bg-warning-subtle text-warning">
+            <i class="bi bi-receipt fs-4"></i>
+          </div>
+          <div>
+            <div class="text-muted small fw-semibold">INVOICES & BILLS</div>
+            <div class="fs-4 fw-bold text-warning">{{ invoices|length }}</div>
+            <div class="small text-muted">Hospital Invoices</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 1. Appointments Section ──────────────────────────────────────── -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white" id="appointments-section">
+    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+      <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-calendar-check text-primary me-2"></i>My Appointments & Consultations</h5>
+      <a href="{% url 'book_appointment' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+        + Book New
+      </a>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4">Doctor</th>
+            <th>Department</th>
+            <th>Date & Time</th>
+            <th>Reason for Visit</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in appointment_history %}
+            <tr>
+              <td class="ps-4 fw-semibold">Dr. {{ a.doctor.user.get_full_name }}</td>
+              <td>{{ a.department.name }}</td>
+              <td>{{ a.start_at|date:"D, d M Y at H:i" }}</td>
+              <td class="text-muted">{{ a.reason_for_visit }}</td>
+              <td>
+                {% if a.status == 'CONFIRMED' %}
+                  <span class="badge bg-success-subtle text-success">Confirmed</span>
+                {% elif a.status == 'COMPLETED' %}
+                  <span class="badge bg-primary-subtle text-primary">Completed</span>
+                {% elif a.status == 'CANCELLED' %}
+                  <span class="badge bg-danger-subtle text-danger">Cancelled</span>
+                {% else %}
+                  <span class="badge bg-warning-subtle text-warning">Pending</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-4">No appointment records found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 2. Prescriptions & Medicines Section ─────────────────────────── -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white" id="prescriptions-section">
+    <div class="card-header bg-white py-3 border-bottom">
+      <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-capsule text-success me-2"></i>My Digital Prescriptions & Medications</h5>
+    </div>
+    <div class="card-body p-4">
+      {% for rx in prescriptions %}
+        <div class="border rounded-4 p-3 mb-3 bg-light">
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+            <span class="fw-bold text-dark fs-6">
+              <i class="bi bi-file-medical text-primary me-1"></i> Prescription #{{ rx.prescription_number }}
+            </span>
+            <span class="text-muted small">Issued by Dr. {{ rx.doctor.user.get_full_name }} on {{ rx.created_at|date:"d M Y" }}</span>
+          </div>
+          {% if rx.diagnosis %}
+            <div class="small mb-2"><strong>Clinical Diagnosis:</strong> {{ rx.diagnosis }}</div>
+          {% endif %}
+          {% if rx.instructions %}
+            <div class="small text-muted mb-3"><strong>Doctor Notes:</strong> {{ rx.instructions }}</div>
+          {% endif %}
+
+          <div class="table-responsive bg-white rounded-3 border">
+            <table class="table table-sm table-borderless align-middle mb-0">
+              <thead class="table-light small text-muted">
+                <tr>
+                  <th class="ps-3">Medicine Name</th>
+                  <th>Dosage</th>
+                  <th>Frequency</th>
+                  <th>Duration</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for m in rx.medicines.all %}
+                  <tr>
+                    <td class="ps-3 fw-semibold text-primary">{{ m.name }}</td>
+                    <td>{{ m.dosage }}</td>
+                    <td>{{ m.frequency }}</td>
+                    <td>{{ m.duration }}</td>
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="4" class="ps-3 text-muted small py-2">Consult doctor for specific item details.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% empty %}
+        <div class="text-center py-4 text-muted">No prescriptions issued yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ── 3. Medical Records & Diagnostic Labs Row ─────────────────────── -->
+  <div class="row g-4 mb-4">
+    
+    <!-- Medical Records -->
+    <div class="col-lg-6" id="records-section">
+      <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-file-earmark-medical text-info me-2"></i>Clinical Records & History</h5>
+        </div>
+        <div class="card-body p-4">
+          {% for r in medical_records %}
+            <div class="border-bottom pb-3 mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <strong class="text-dark">{{ r.diagnosis|default:"General Clinical Evaluation" }}</strong>
+                <small class="text-muted">{{ r.created_at|date:"d M Y" }}</small>
+              </div>
+              <div class="text-muted small mb-1">Consulting Doctor: Dr. {{ r.doctor.user.get_full_name }}</div>
+              <p class="small text-slate-700 mb-0">{{ r.clinical_notes|truncatewords:25 }}</p>
+            </div>
+          {% empty %}
+            <div class="text-center text-muted py-4">No clinical notes recorded yet.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Laboratory Test Orders -->
+    <div class="col-lg-6" id="labs-section">
+      <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-eyedropper text-warning me-2"></i>Diagnostic Laboratory Reports</h5>
+        </div>
+        <div class="card-body p-4">
+          {% for lab in lab_reports %}
+            <div class="border rounded-3 p-3 mb-3 bg-light">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold text-dark">{{ lab.test_name }}</span>
+                <span class="badge bg-{% if lab.status == 'COMPLETED' %}success{% else %}warning text-dark{% endif %}">
+                  {{ lab.get_status_display }}
+                </span>
+              </div>
+              <div class="small text-muted mb-2">Order #{{ lab.order_number }} &bull; Ref Dr. {{ lab.doctor.user.get_full_name }} &bull; {{ lab.ordered_at|date:"d M Y" }}</div>
+              {% if lab.report %}
+                <div class="small bg-white p-2 rounded border mb-2">
+                  <strong>Result Summary:</strong> {{ lab.report.result_summary|default:"Report processed and filed." }}
+                </div>
+              {% endif %}
+            </div>
+          {% empty %}
+            <div class="text-center text-muted py-4">No laboratory test orders.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── 4. Invoices & Billing Section ────────────────────────────────── -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white" id="invoices-section">
+    <div class="card-header bg-white py-3 border-bottom">
+      <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-receipt-cutoff text-danger me-2"></i>My Invoices & Payment Receipts</h5>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4">Invoice #</th>
+            <th>Issue Date</th>
+            <th>Total Amount</th>
+            <th>Payment Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in invoices %}
+            <tr>
+              <td class="ps-4 font-monospace fw-semibold">{{ inv.invoice_number }}</td>
+              <td>{{ inv.issued_at|date:"d M Y" }}</td>
+              <td class="fw-bold">₹{{ inv.total_amount|floatformat:2 }}</td>
+              <td>
+                {% if inv.status == 'PAID' %}
+                  <span class="badge bg-success-subtle text-success">Paid</span>
+                {% elif inv.status == 'PARTIALLY_PAID' %}
+                  <span class="badge bg-warning-subtle text-warning">Partially Paid</span>
+                {% elif inv.status == 'VOID' %}
+                  <span class="badge bg-secondary-subtle text-secondary">Void</span>
+                {% else %}
+                  <span class="badge bg-danger-subtle text-danger">Pending</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="text-center text-muted py-4">No invoices on file.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 5. Profile & Contact Information Update Form ──────────────────── -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white" id="profile-section">
+    <div class="card-header bg-white py-3 border-bottom">
+      <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-person-gear text-primary me-2"></i>My Patient Profile & Contact Details</h5>
+    </div>
+    <div class="card-body p-4">
+      <form method="post" action="{% url 'patient_dashboard' %}">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Full Name (Read-only)</label>
+            <input type="text" class="form-control bg-light" value="{{ patient.user.get_full_name }}" readonly />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Patient ID Code</label>
+            <input type="text" class="form-control bg-light font-monospace" value="{{ patient.patient_id_code }}" readonly />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Contact Phone Number</label>
+            <input type="tel" name="contact_number" class="form-control" value="{{ patient.contact_number }}" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Blood Group</label>
+            <input type="text" class="form-control bg-light" value="{{ patient.blood_group|default:'Not recorded' }}" readonly />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Emergency Contact Person</label>
+            <input type="text" name="emergency_contact_name" class="form-control" value="{{ patient.emergency_contact_name }}" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Emergency Contact Phone</label>
+            <input type="tel" name="emergency_contact_number" class="form-control" value="{{ patient.emergency_contact_number }}" />
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Residential Address</label>
+            <textarea name="address" class="form-control" rows="2">{{ patient.address }}</textarea>
+          </div>
+          <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary rounded-pill px-4">
+              <i class="bi bi-save me-1"></i> Save Profile Details
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

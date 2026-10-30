@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login — MediSaaS Hospital Management</title>
+  <title>{% if role_info %}{{ role_info.title }}{% else %}Portal Login{% endif %} — MediSaaS</title>
 
   <!-- Bootstrap 5 CSS -->
   <link
@@ -19,10 +19,12 @@
   <style>
     :root {
       --primary: #0d6efd;
+      --navy: #1a1f36;
+      --teal: #0ea5e9;
     }
 
     html, body {
-      height: 100%;
+      min-height: 100vh;
       margin: 0;
     }
 
@@ -30,207 +32,356 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #1a1f36 0%, #0d6efd 100%);
-      font-family: "Inter", "Segoe UI", sans-serif;
-      min-height: 100vh;
+      background: radial-gradient(circle at top left, #1e293b 0%, #0f172a 100%);
+      font-family: "Inter", "Segoe UI", -apple-system, sans-serif;
+      padding: 24px 16px;
     }
 
-    .login-wrapper {
-      display: flex;
-      width: 900px;
-      max-width: 96vw;
-      min-height: 520px;
-      border-radius: 20px;
+    .login-container {
+      width: 1020px;
+      max-width: 100%;
+      background: #ffffff;
+      border-radius: 24px;
       overflow: hidden;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5);
+      display: flex;
+      min-height: 600px;
     }
 
-    /* ── Left Panel (Branding) ─────────────────── */
-    .login-left {
-      flex: 1;
-      background: linear-gradient(160deg, #1a1f36 0%, #2d3561 100%);
-      padding: 48px 40px;
+    /* ── Left Branding Panel ─────────────────────── */
+    .brand-side {
+      flex: 1.1;
+      background: linear-gradient(150deg, #1e293b 0%, #0f172a 60%, #0d6efd 120%);
+      padding: 48px;
+      color: #ffffff;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .brand-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
       color: #fff;
     }
 
-    .login-left .brand-icon {
-      font-size: 52px;
-      color: #0d6efd;
-      margin-bottom: 16px;
-    }
-
-    .login-left h1 {
+    .brand-logo i {
       font-size: 32px;
+      color: #38bdf8;
+    }
+
+    .brand-logo h3 {
+      font-size: 24px;
       font-weight: 800;
-      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+      margin: 0;
     }
 
-    .login-left p {
-      font-size: 15px;
-      color: #c8cfe8;
-      line-height: 1.7;
+    .role-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 24px;
     }
 
-    .feature-list {
+    .portal-features-list {
       list-style: none;
       padding: 0;
-      margin-top: 32px;
+      margin: 32px 0;
     }
 
-    .feature-list li {
+    .portal-features-list li {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      margin-bottom: 16px;
       font-size: 14px;
-      color: #c8cfe8;
-      margin-bottom: 12px;
+      color: #cbd5e1;
     }
 
-    .feature-list li i {
-      color: #0d6efd;
+    .portal-features-list li i {
       font-size: 18px;
+      color: #38bdf8;
     }
 
-    /* ── Right Panel (Form) ────────────────────── */
-    .login-right {
-      width: 400px;
-      background: #fff;
-      padding: 52px 44px;
+    /* ── Right Form Panel ────────────────────────── */
+    .form-side {
+      flex: 1.2;
+      padding: 48px;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      background: #ffffff;
     }
 
-    .login-right h2 {
-      font-size: 24px;
-      font-weight: 700;
-      color: #1a1f36;
+    .form-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f172a;
       margin-bottom: 6px;
     }
 
-    .login-right .subtitle {
+    .form-subtitle {
       font-size: 14px;
-      color: #8892b0;
-      margin-bottom: 32px;
-    }
-
-    .form-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #1a1f36;
+      color: #64748b;
+      margin-bottom: 28px;
     }
 
     .form-control {
-      border-radius: 10px;
-      border: 1.5px solid #e0e4f0;
-      padding: 11px 14px;
+      border-radius: 12px;
+      padding: 12px 16px;
+      border: 1.5px solid #e2e8f0;
       font-size: 14px;
-      transition: border-color 0.2s;
+      transition: all 0.2s ease;
     }
 
     .form-control:focus {
       border-color: #0d6efd;
-      box-shadow: 0 0 0 3px rgba(13,110,253,0.12);
+      box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.12);
     }
 
     .input-group-text {
-      border-radius: 10px 0 0 10px;
-      background: #f5f6fa;
-      border: 1.5px solid #e0e4f0;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
       border-right: none;
-      color: #8892b0;
+      border-radius: 12px 0 0 12px;
+      color: #64748b;
     }
 
     .input-group .form-control {
-      border-radius: 0 10px 10px 0;
+      border-radius: 0 12px 12px 0;
     }
 
-    .btn-login {
-      background: linear-gradient(135deg, #0d6efd, #0a58ca);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 15px;
+    .btn-submit-login {
+      background: #0d6efd;
+      color: #ffffff;
       font-weight: 600;
-      letter-spacing: 0.3px;
-      transition: opacity 0.2s;
+      padding: 13px;
+      border-radius: 12px;
+      border: none;
       width: 100%;
+      font-size: 15px;
+      transition: background 0.2s;
     }
 
-    .btn-login:hover {
-      opacity: 0.92;
-      color: #fff;
+    .btn-submit-login:hover {
+      background: #0b5ed7;
+      color: #ffffff;
     }
 
-    .admin-link {
-      display: block;
-      text-align: center;
-      margin-top: 20px;
-      font-size: 13px;
-      color: #8892b0;
+    .demo-box {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .quick-roles-pills {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .role-btn-pill {
       text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 600;
+      background: #ffffff;
+      transition: all 0.15s ease;
     }
 
-    .admin-link:hover {
+    .role-btn-pill:hover,
+    .role-btn-pill.active {
+      background: #f0f7ff;
+      border-color: #0d6efd;
       color: #0d6efd;
-      text-decoration: underline;
     }
 
-    /* Responsive: stack on small screens */
-    @media (max-width: 700px) {
-      .login-left { display: none; }
-      .login-right { width: 100%; }
+    @media (max-width: 850px) {
+      .login-container {
+        flex-direction: column;
+      }
+      .brand-side {
+        padding: 32px;
+      }
+      .form-side {
+        padding: 32px 24px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div class="login-wrapper">
+  <div class="login-container">
+    
+    <!-- ── Left Branding Panel ─────────────────────── -->
+    <div class="brand-side">
+      <div>
+        <a href="/" class="brand-logo">
+          <i class="bi bi-heart-pulse-fill"></i>
+          <div>
+            <h3>MediSaaS</h3>
+            <span style="font-size: 12px; color: #94a3b8; font-weight: normal;">Healthcare OS & Multi-Tenant EHR</span>
+          </div>
+        </a>
 
-    <!-- ── Left: Branding ──────────────────────────────────── -->
-    <div class="login-left">
-      <div class="brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
-      <h1>MediSaaS</h1>
-      <p>
-        Multi-hospital management platform.<br>
-        Secure. Scalable. Built for teams.
-      </p>
+        {% if role_info %}
+          <div class="role-badge-pill">
+            <i class="bi {{ role_info.icon }} text-warning"></i>
+            <span>{{ role_info.badge }}</span>
+          </div>
+          <h2 class="mt-4" style="font-size: 28px; font-weight: 700;">{{ role_info.title }}</h2>
+          <p class="text-slate-300 mt-2" style="font-size: 14px; color: #94a3b8; line-height: 1.6;">
+            {{ role_info.subtitle }}
+          </p>
+        {% else %}
+          <div class="role-badge-pill">
+            <i class="bi bi-shield-check text-info"></i>
+            <span>Enterprise Healthcare Portal</span>
+          </div>
+          <h2 class="mt-4" style="font-size: 28px; font-weight: 700;">Integrated Clinical & Admin Suite</h2>
+          <p class="text-slate-300 mt-2" style="font-size: 14px; color: #94a3b8; line-height: 1.6;">
+            Select your role or sign in with your hospital credentials to access your dedicated workspace.
+          </p>
+        {% endif %}
 
-      <ul class="feature-list">
-        <li><i class="bi bi-shield-check-fill"></i> Role-based access control</li>
-        <li><i class="bi bi-building-fill-check"></i> Multi-hospital tenant isolation</li>
-        <li><i class="bi bi-calendar2-check-fill"></i> Appointments & scheduling</li>
-        <li><i class="bi bi-file-earmark-medical-fill"></i> Medical records & prescriptions</li>
-        <li><i class="bi bi-receipt-cutoff"></i> Billing & invoicing</li>
-      </ul>
+        <ul class="portal-features-list">
+          <li><i class="bi bi-check-circle-fill"></i> 100% Tenant Isolation per Hospital</li>
+          <li><i class="bi bi-check-circle-fill"></i> Conflict-Free Real-time Scheduling</li>
+          <li><i class="bi bi-check-circle-fill"></i> Server-side Verified Billing & Lab Reports</li>
+          <li><i class="bi bi-check-circle-fill"></i> Immutable Role-Based Audit Trail</li>
+        </ul>
+      </div>
+
+      <div>
+        <a href="/" class="btn btn-outline-light btn-sm rounded-pill px-3 py-2" style="font-size: 13px;">
+          <i class="bi bi-arrow-left me-1"></i> Back to Patient Website
+        </a>
+      </div>
     </div>
 
-    <!-- ── Right: Login Form ───────────────────────────────── -->
-    <div class="login-right">
-      <h2>Welcome back</h2>
-      <p class="subtitle">Sign in to your account</p>
+    <!-- ── Right Form Panel ────────────────────────── -->
+    <div class="form-side">
+      
+      {% if role_info %}
+        <!-- Role Specific Header -->
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="badge bg-{{ role_info.badge_color }}-subtle text-{{ role_info.badge_color }} px-3 py-2 rounded-pill font-semibold" style="font-size: 12px;">
+            <i class="bi {{ role_info.icon }} me-1"></i> Dedicated {{ role_info.badge }}
+          </span>
+          <a href="{% url 'portals_gateway' %}" class="text-decoration-none text-muted" style="font-size: 12px;">
+            All Portals <i class="bi bi-chevron-right"></i>
+          </a>
+        </div>
+        <h1 class="form-title">Sign In</h1>
+        <p class="form-subtitle">Enter your registered credentials or launch demo session.</p>
 
-      <!-- Django flash messages (errors) -->
+        <!-- 1-Click Demo Login Box -->
+        <div class="demo-box">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="fw-bold" style="font-size: 13px; color: #1e293b;">
+              <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Quick Demo Access
+            </span>
+            <span class="badge bg-light text-dark border">{{ role_info.demo_name }}</span>
+          </div>
+          <div class="small text-muted mb-3 font-monospace" style="font-size: 12px;">
+            <code>{{ role_info.demo_email }}</code> &bull; <code>••••••••</code>
+          </div>
+          <form method="post" action="">
+            {% csrf_token %}
+            <input type="hidden" name="quick_demo" value="1">
+            <input type="hidden" name="demo_role" value="{{ role_info.slug }}">
+            <button type="submit" class="btn btn-sm btn-outline-primary w-100 rounded-pill fw-semibold">
+              <i class="bi bi-box-arrow-in-right me-1"></i> 1-Click Launch Demo {{ role_info.badge }}
+            </button>
+          </form>
+        </div>
+
+      {% else %}
+        <!-- Universal Role Selector Tabs -->
+        <h1 class="form-title">Hospital & Patient Login</h1>
+        <p class="form-subtitle">Choose your dedicated role portal or sign in below:</p>
+
+        <div class="quick-roles-pills" style="grid-template-columns: repeat(3, 1fr);">
+          <a href="{% url 'doctor_login' %}" class="role-btn-pill">
+            <i class="bi bi-stethoscope text-info"></i>
+            <div>
+              <div>Doctor</div>
+              <small class="text-muted" style="font-size: 10px;">Consultations</small>
+            </div>
+          </a>
+          <a href="{% url 'receptionist_login' %}" class="role-btn-pill">
+            <i class="bi bi-person-badge text-warning"></i>
+            <div>
+              <div>Receptionist</div>
+              <small class="text-muted" style="font-size: 10px;">Front Desk</small>
+            </div>
+          </a>
+          <a href="{% url 'hospital_admin_login' %}" class="role-btn-pill">
+            <i class="bi bi-building-gear text-primary"></i>
+            <div>
+              <div>Hospital Admin</div>
+              <small class="text-muted" style="font-size: 10px;">Operations</small>
+            </div>
+          </a>
+          <a href="{% url 'super_admin_login' %}" class="role-btn-pill">
+            <i class="bi bi-shield-lock text-danger"></i>
+            <div>
+              <div>Super Admin</div>
+              <small class="text-muted" style="font-size: 10px;">Platform Core</small>
+            </div>
+          </a>
+          <a href="{% url 'staff_login' %}" class="role-btn-pill">
+            <i class="bi bi-people text-secondary"></i>
+            <div>
+              <div>Hospital Staff</div>
+              <small class="text-muted" style="font-size: 10px;">Assigned Ops</small>
+            </div>
+          </a>
+          <a href="{% url 'patient_login' %}" class="role-btn-pill">
+            <i class="bi bi-person-heart text-success"></i>
+            <div>
+              <div>Patient</div>
+              <small class="text-muted" style="font-size: 10px;">My Health EHR</small>
+            </div>
+          </a>
+        </div>
+      {% endif %}
+
+      <!-- Alerts / Messages -->
       {% if messages %}
         {% for message in messages %}
-          <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show rounded-3 py-2 mb-3" role="alert" style="font-size:13px;">
-            <i class="bi bi-exclamation-circle me-1"></i>
-            {{ message }}
+          <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show rounded-3 py-2 mb-3" role="alert" style="font-size: 13px;">
+            <i class="bi bi-info-circle me-1"></i> {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
           </div>
         {% endfor %}
       {% endif %}
 
-      <form method="post" action="{% url 'login' %}" novalidate>
+      <!-- Standard Credentials Form -->
+      <form method="post" action="" novalidate>
         {% csrf_token %}
 
-        <!-- Email field -->
         <div class="mb-3">
-          <label for="id_email" class="form-label">Email address</label>
+          <label for="id_email" class="form-label fw-semibold" style="font-size: 13px;">Email Address</label>
           <div class="input-group">
             <span class="input-group-text"><i class="bi bi-envelope"></i></span>
             <input
@@ -238,17 +389,16 @@
               id="id_email"
               name="email"
               class="form-control"
-              placeholder="you@example.com"
-              autocomplete="email"
+              placeholder="{% if role_info %}{{ role_info.demo_email }}{% else %}name@hospital.com{% endif %}"
+              value="{% if role_info %}{{ role_info.demo_email }}{% endif %}"
               required
               autofocus
             />
           </div>
         </div>
 
-        <!-- Password field -->
         <div class="mb-4">
-          <label for="id_password" class="form-label">Password</label>
+          <label for="id_password" class="form-label fw-semibold" style="font-size: 13px;">Password</label>
           <div class="input-group">
             <span class="input-group-text"><i class="bi bi-lock"></i></span>
             <input
@@ -257,31 +407,32 @@
               name="password"
               class="form-control"
               placeholder="••••••••"
-              autocomplete="current-password"
+              value="{% if role_info %}{{ role_info.demo_password }}{% endif %}"
               required
             />
           </div>
         </div>
 
-        <button type="submit" class="btn btn-login">
-          <i class="bi bi-box-arrow-in-right me-1"></i>
-          Sign In
+        <button type="submit" class="btn-submit-login">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Workspace
         </button>
       </form>
 
-      <!--
-        Super Admin shortcut to Django Admin panel.
-        This link is public but Django Admin itself requires is_staff=True.
-      -->
-      <a href="/admin/" class="admin-link">
-        <i class="bi bi-gear me-1"></i>
-        Super Admin — Django Admin Panel
-      </a>
+      <!-- Bottom Links -->
+      <div class="d-flex align-items-center justify-content-between mt-4 pt-3 border-top" style="font-size: 13px;">
+        <a href="{% url 'landing' %}" class="text-decoration-none text-muted">
+          <i class="bi bi-house me-1"></i> Public Website
+        </a>
+        <a href="/admin/" class="text-decoration-none text-muted">
+          <i class="bi bi-gear me-1"></i> Django Admin
+        </a>
+      </div>
+
     </div>
 
   </div>
 
-  <!-- Bootstrap 5 JS -->
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

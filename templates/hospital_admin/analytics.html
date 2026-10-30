@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Hospital Assessment & Analytics{% endblock %}
+{% block page_title %}Hospital Operational Assessment & Analytics{% endblock %}
+
+{% block sidebar_links %}
+  {% include "hospital_admin/_sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+  <!-- ── Top Header & Health Score Banner ────────────────────────────── -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
+    <div class="card-body p-4">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <h4 class="fw-bold text-dark mb-0">{{ hospital.name }} — Clinical Assessment</h4>
+            <span class="badge bg-{{ grade_badge }} fs-6 px-3 py-1 rounded-pill">Grade {{ grade }}</span>
+          </div>
+          <p class="text-muted mb-0 small">
+            Real-time multi-dimensional assessment covering clinical throughput, doctor productivity, revenue cycle, and diagnostic efficiency.
+          </p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <div class="text-end">
+            <div class="text-muted small fw-semibold">COMPOSITE HEALTH INDEX</div>
+            <div class="fs-2 fw-black text-{{ grade_badge }}">{{ composite_health_score }}<span class="fs-5 text-muted">/100</span></div>
+            <div class="badge bg-{{ grade_badge }}-subtle text-{{ grade_badge }} small">{{ grade_desc }}</div>
+          </div>
+          <button onclick="window.print()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2">
+            <i class="bi bi-printer me-1"></i> Print Assessment
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Core Performance Metrics ────────────────────────────────────── -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-4 p-3 bg-primary-subtle text-primary">
+            <i class="bi bi-calendar-check fs-3"></i>
+          </div>
+          <div>
+            <div class="text-muted small fw-semibold">APPOINTMENT COMPLETION</div>
+            <div class="fs-4 fw-bold text-dark">{{ completion_rate }}%</div>
+            <div class="small text-muted">{{ completed_appts }} of {{ total_appts }} completed</div>
+          </div>
+        </div>
+        <div class="progress mt-3" style="height: 6px;">
+          <div class="progress-bar bg-primary" role="progressbar" style="width: {{ completion_rate }}%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-4 p-3 bg-success-subtle text-success">
+            <i class="bi bi-currency-rupee fs-3"></i>
+          </div>
+          <div>
+            <div class="text-muted small fw-semibold">COLLECTION EFFICIENCY</div>
+            <div class="fs-4 fw-bold text-dark">{{ collection_rate }}%</div>
+            <div class="small text-success">₹{{ total_collected|floatformat:2 }} collected</div>
+          </div>
+        </div>
+        <div class="progress mt-3" style="height: 6px;">
+          <div class="progress-bar bg-success" role="progressbar" style="width: {{ collection_rate }}%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-4 p-3 bg-info-subtle text-info">
+            <i class="bi bi-eyedropper fs-3"></i>
+          </div>
+          <div>
+            <div class="text-muted small fw-semibold">DIAGNOSTIC LAB TAT</div>
+            <div class="fs-4 fw-bold text-dark">{{ lab_turnaround_rate }}%</div>
+            <div class="small text-muted">{{ completed_labs }} of {{ total_labs }} reported</div>
+          </div>
+        </div>
+        <div class="progress mt-3" style="height: 6px;">
+          <div class="progress-bar bg-info" role="progressbar" style="width: {{ lab_turnaround_rate }}%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-4 p-3 bg-danger-subtle text-danger">
+            <i class="bi bi-exclamation-triangle fs-3"></i>
+          </div>
+          <div>
+            <div class="text-muted small fw-semibold">CANCELLATION RATE</div>
+            <div class="fs-4 fw-bold text-dark">{{ cancellation_rate }}%</div>
+            <div class="small text-muted">{{ cancelled_appts }} cancelled, {{ no_show_appts }} no-show</div>
+          </div>
+        </div>
+        <div class="progress mt-3" style="height: 6px;">
+          <div class="progress-bar bg-danger" role="progressbar" style="width: {{ cancellation_rate }}%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Financial Health Breakdown & Recommendations ─────────────────── -->
+  <div class="row g-4 mb-4">
+    <!-- Financial Analysis -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+        <h5 class="fw-bold mb-3"><i class="bi bi-receipt-cutoff text-primary me-2"></i>Revenue Cycle Analysis</h5>
+        
+        <div class="table-responsive">
+          <table class="table table-borderless align-middle mb-0">
+            <tbody>
+              <tr class="border-bottom">
+                <td class="text-muted py-2">Total Gross Billing</td>
+                <td class="text-end fw-bold py-2">₹{{ total_billed|floatformat:2 }}</td>
+              </tr>
+              <tr class="border-bottom">
+                <td class="text-muted py-2">Total Collected (Cash/Card/Online)</td>
+                <td class="text-end fw-bold text-success py-2">₹{{ total_collected|floatformat:2 }}</td>
+              </tr>
+              <tr class="border-bottom">
+                <td class="text-muted py-2">Outstanding / Pending Balance</td>
+                <td class="text-end fw-bold text-danger py-2">₹{{ total_outstanding|floatformat:2 }}</td>
+              </tr>
+              <tr class="border-bottom">
+                <td class="text-muted py-2">Total Tax Assessed (GST/VAT)</td>
+                <td class="text-end py-2">₹{{ total_tax|floatformat:2 }}</td>
+              </tr>
+              <tr>
+                <td class="text-muted py-2">Promotional Discounts Applied</td>
+                <td class="text-end py-2 text-secondary">- ₹{{ total_discount|floatformat:2 }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="alert alert-light border rounded-3 mt-3 mb-0 small text-muted">
+          <i class="bi bi-shield-check text-success me-1"></i>
+          <strong>Rule #9 Verified:</strong> All invoices and payments are calculated strictly server-side with zero client-side arithmetic reliance.
+        </div>
+      </div>
+    </div>
+
+    <!-- Operational Assessment & Recommendations -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+        <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb text-warning me-2"></i>Assessment Findings & Recommendations</h5>
+
+        {% for rec in recommendations %}
+          <div class="alert alert-{{ rec.type }} border-0 rounded-4 d-flex align-items-start gap-3 p-3 mb-3 shadow-none">
+            <i class="bi {% if rec.type == 'warning' %}bi-exclamation-circle-fill{% elif rec.type == 'danger' %}bi-x-octagon-fill{% elif rec.type == 'info' %}bi-info-circle-fill{% else %}bi-check-circle-fill{% endif %} fs-4 mt-1"></i>
+            <div>
+              <div class="fw-bold" style="font-size: 14px;">{{ rec.title }}</div>
+              <div class="small opacity-75 mt-1">{{ rec.text }}</div>
+            </div>
+          </div>
+        {% endfor %}
+
+        <div class="bg-light p-3 rounded-4 mt-auto">
+          <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>Registered Patients: <strong>{{ total_patients }}</strong></span>
+            <span>Clinical Records: <strong>{{ total_records }}</strong></span>
+            <span>Prescriptions: <strong>{{ total_prescriptions }}</strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Department Workload & Doctor Productivity ───────────────────── -->
+  <div class="row g-4 mb-4">
+    <!-- Department Breakdown -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+        <h5 class="fw-bold mb-3"><i class="bi bi-diagram-3 text-info me-2"></i>Departmental Case Volume</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Department</th>
+                <th class="text-center">Active Doctors</th>
+                <th class="text-center">Appointments</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for d in dept_stats %}
+                <tr>
+                  <td class="fw-semibold">{{ d.name }}</td>
+                  <td class="text-center"><span class="badge bg-light text-dark border">{{ d.doctor_count }}</span></td>
+                  <td class="text-center"><span class="badge bg-primary-subtle text-primary">{{ d.appt_count }}</span></td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="3" class="text-center text-muted py-3">No departments found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Doctor Performance -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+        <h5 class="fw-bold mb-3"><i class="bi bi-person-video3 text-success me-2"></i>Doctor Consultation Throughput</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Doctor</th>
+                <th>Department</th>
+                <th class="text-center">Total</th>
+                <th class="text-center">Completed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for doc in doctor_stats %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">Dr. {{ doc.user.get_full_name }}</div>
+                    <small class="text-muted font-monospace">{{ doc.employee_code }}</small>
+                  </td>
+                  <td>{{ doc.department.name }}</td>
+                  <td class="text-center"><span class="badge bg-light text-dark border">{{ doc.total_appts }}</span></td>
+                  <td class="text-center"><span class="badge bg-success-subtle text-success">{{ doc.completed_appts }}</span></td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-3">No doctors registered.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -5,7 +5,7 @@ from django.utils import timezone
 from .models import Notification
 
 
-@login_required(login_url="login")
+@login_required(login_url="portals_gateway")
 def notification_list(request):
     """View notifications for the logged-in user."""
     user_notifications = Notification.objects.filter(user=request.user).order_by("-created_at")
@@ -18,7 +18,7 @@ def notification_list(request):
     return render(request, "notifications/list.html", context)
 
 
-@login_required(login_url="login")
+@login_required(login_url="portals_gateway")
 def mark_as_read(request, pk):
     """Mark a single notification as read."""
     notif = get_object_or_404(Notification, pk=pk, user=request.user)
@@ -28,7 +28,7 @@ def mark_as_read(request, pk):
     return redirect("notification_list")
 
 
-@login_required(login_url="login")
+@login_required(login_url="portals_gateway")
 def mark_all_read(request):
     """Mark all user notifications as read."""
     if request.method == "POST":

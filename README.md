@@ -70,7 +70,7 @@ python manage.py migrate
 python manage.py seed_demo_data
 ```
 
-This creates 2 hospitals, subscription plans, departments, and 4 ready-to-use user accounts:
+This creates 2 hospitals, subscription plans, departments, and ready-to-use accounts for each portal:
 
 | Role | Email | Password |
 |---|---|---|
@@ -78,6 +78,8 @@ This creates 2 hospitals, subscription plans, departments, and 4 ready-to-use us
 | Hospital Admin | `apollo.admin@medisaas.com` | `AdminPass@123` |
 | Doctor | `dr.ramesh@apollo.com` | `DoctorPass@123` |
 | Receptionist | `priya.reception@apollo.com` | `StaffPass@123` |
+| Hospital Staff | `staff.demo@apollo.com` | `StaffPass@123` |
+| Patient | `anil.kapoor@example.com` | `PatientPass@123` |
 
 > The seed command is **idempotent** — running it multiple times is safe (uses `get_or_create`).
 

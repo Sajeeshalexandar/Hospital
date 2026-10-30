@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Welcome to Patient Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h1 class="display-4 text-center">Welcome to {{ site_name }}</h1>
+  <p class="lead text-center">Your health, your data, securely managed.</p>
+  <div class="row justify-content-center mt-4">
+    <div class="col-md-6 text-center">
+      <a href="{% url 'patient_list' %}" class="btn btn-primary btn-lg mr-2">Explore Patients</a>
+      <a href="{% url 'patient_login' %}" class="btn btn-outline-secondary btn-lg">Login</a>
+      <a href="/accounts/signup/" class="btn btn-outline-success btn-lg ml-2">Register</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

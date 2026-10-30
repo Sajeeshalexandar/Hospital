@@ -46,3 +46,12 @@ def get_user_role(user):
     """
     membership = get_user_membership(user)
     return membership.role if membership else None
+
+
+def get_user_patient(user):
+    """
+    Returns the active PatientProfile object for the given user, or None.
+    """
+    from patients.models import PatientProfile
+    return PatientProfile.objects.filter(user=user, is_active=True).select_related("hospital").first()
+
