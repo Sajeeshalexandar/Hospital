@@ -177,22 +177,24 @@ Key packages (see `requirements.txt` for full list):
 
 ## 🔒 Environment Variables (Production)
 
-For production deployment, move these settings out of `config/settings.py` into environment variables:
+The included `render.yaml` configures a Render web service and PostgreSQL database. To deploy:
 
-```env
-SECRET_KEY=your-secret-key-here
-DEBUG=False
-ALLOWED_HOSTS=yourdomain.com
-DATABASE_URL=postgresql://user:pass@host/db
-```
+1. Push this repository to GitHub.
+2. In Render, choose **New → Blueprint**, connect the repository, and apply the `render.yaml` configuration.
+3. Render generates `SECRET_KEY`, sets `DEBUG=False`, and supplies the PostgreSQL `DATABASE_URL`. The build script collects static files and applies migrations.
+4. Open the deployed service URL. For a disposable demo only, run `python manage.py seed_demo_data` from the Render Shell; do not use the documented sample credentials on a public live instance.
+
+For a manual Render setup, use **Python** as the runtime, `bash website/build.sh` as the build command, and `gunicorn config.wsgi:application` as the start command. Set `SECRET_KEY`, `DEBUG=False`, and `DATABASE_URL`. Render automatically provides `RENDER_EXTERNAL_HOSTNAME`, which Django uses for host and CSRF validation.
 
 ---
 
 ## 👨‍💻 Development Notes
 
 - **Database**: SQLite (development). Switch to PostgreSQL for production.
-- **Media files**: Stored in `media/` locally. Use S3 or similar for production.
+- **Media files**: Stored in `media/` locally. Render's service filesystem is ephemeral; configure S3 or similar storage before relying on uploaded files in production.
 - **Static files**: Run `python manage.py collectstatic` for production.
+- **Render free plan**: Free PostgreSQL databases expire after their current free-plan period. Back up data or select a suitable paid database for long-term use.
+- **Patient data**: Do not store real patient/medical records on a free demo deployment. Verify applicable privacy, security, and backup requirements before using real data.
 
 ---
 
