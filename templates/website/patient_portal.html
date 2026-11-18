@@ -54,7 +54,7 @@
         <span class="badge bg-primary-subtle text-primary px-3 py-1 rounded-pill fw-semibold mx-auto mb-2">Digital Health Records</span>
         <h3 class="fw-bold text-dark">Patient Record & Test Results Lookup</h3>
         <p class="text-muted small max-w-lg mx-auto mb-3">
-          Enter your Patient ID Code (e.g. <code>PAT-2026-0001</code>) or your registered contact phone number to access your appointments, prescriptions, and lab tests.
+          Enter your Patient ID Code or registered contact phone number to access your appointments, prescriptions, and lab tests.
         </p>
 
         <div class="row justify-content-center">
@@ -64,7 +64,7 @@
                 type="text"
                 name="q"
                 value="{{ search_query }}"
-                placeholder="e.g. PAT-2026-0001 or +91 98201 11223"
+                placeholder="Patient ID Code or Phone Number"
                 class="form-control rounded-pill px-3"
                 required
               />
@@ -209,7 +209,7 @@
                       <tbody>
                         {% for m in p.medicines.all %}
                           <tr>
-                            <td class="fw-semibold">{{ m.name }}</td>
+                            <td class="fw-semibold">{{ m.medicine_name }}</td>
                             <td>{{ m.dosage }}</td>
                             <td>{{ m.frequency }}</td>
                             <td>{{ m.duration }}</td>

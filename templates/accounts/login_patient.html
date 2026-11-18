@@ -44,14 +44,6 @@
       color: white;
       font-size: 28px;
     }
-    .demo-box {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      border-radius: 10px;
-      padding: 14px;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-    }
     .btn-role {
       border-radius: 10px;
       padding: 12px;
@@ -115,8 +107,8 @@
         {% csrf_token %}
         <div class="mb-3">
           <label class="form-label fw-semibold small text-dark">Email Address</label>
-          <input type="email" name="email" class="form-control" placeholder="Enter your email"
-                 value="anil.kapoor@example.com" required />
+          <input type="email" name="email" class="form-control" placeholder="patient@example.com"
+                 required autofocus />
         </div>
         <div class="mb-3">
           <label class="form-label fw-semibold small text-dark">Password</label>
@@ -134,30 +126,9 @@
         </button>
       </form>
 
-      <hr class="divider my-3" />
-
-      <!-- Demo Credentials Box -->
-      <div class="demo-box mb-3">
-        <div class="text-success fw-semibold small mb-2">
-          <i class="bi bi-info-circle me-1"></i>Demo Credentials (Testing Only)
-        </div>
-        <div class="mb-1"><strong>Email:</strong> anil.kapoor@example.com</div>
-        <div><strong>Password:</strong> PatientPass@123</div>
-      </div>
-
-      <!-- Quick Demo Login -->
-      <form method="post" action="">
-        {% csrf_token %}
-        <input type="hidden" name="quick_demo" value="1" />
-        <input type="hidden" name="demo_role" value="patient" />
-        <button type="submit" class="btn btn-outline-success w-100 rounded-3 py-2 small fw-semibold">
-          <i class="bi bi-lightning-charge me-1"></i>One-Click Demo Login
-        </button>
-      </form>
-
       <p class="text-center text-muted mt-4 small mb-0">
         <i class="bi bi-heart me-1"></i>
-        Your health, your data — secure and always accessible.
+        Your health records, appointments, and prescriptions — secure and confidential.
       </p>
     </div>
   </div>

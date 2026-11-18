@@ -187,8 +187,8 @@
           {% if rx.diagnosis %}
             <div class="small mb-2"><strong>Clinical Diagnosis:</strong> {{ rx.diagnosis }}</div>
           {% endif %}
-          {% if rx.instructions %}
-            <div class="small text-muted mb-3"><strong>Doctor Notes:</strong> {{ rx.instructions }}</div>
+          {% if rx.notes %}
+            <div class="small text-muted mb-3"><strong>Doctor Notes:</strong> {{ rx.notes }}</div>
           {% endif %}
 
           <div class="table-responsive bg-white rounded-3 border">
@@ -204,7 +204,7 @@
               <tbody>
                 {% for m in rx.medicines.all %}
                   <tr>
-                    <td class="ps-3 fw-semibold text-primary">{{ m.name }}</td>
+                    <td class="ps-3 fw-semibold text-primary">{{ m.medicine_name }}</td>
                     <td>{{ m.dosage }}</td>
                     <td>{{ m.frequency }}</td>
                     <td>{{ m.duration }}</td>

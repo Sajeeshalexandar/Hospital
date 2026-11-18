@@ -12,9 +12,6 @@ ROLE_CONFIGS = {
         "subtitle": "Access consultation queue, patient electronic records, prescriptions & lab orders",
         "badge": "Doctor Access",
         "badge_color": "info",
-        "demo_email": "dr.ramesh@apollo.com",
-        "demo_password": "DoctorPass@123",
-        "demo_name": "Dr. Ramesh Gupta (Cardiologist)",
         "icon": "bi-stethoscope",
         "target_url": "doctor_dashboard",
     },
@@ -26,9 +23,6 @@ ROLE_CONFIGS = {
         "subtitle": "OPD patient admissions, appointment check-ins, and cashier billing collection",
         "badge": "Receptionist Access",
         "badge_color": "warning",
-        "demo_email": "priya.reception@apollo.com",
-        "demo_password": "StaffPass@123",
-        "demo_name": "Priya Sharma (Front Desk / Cashier)",
         "icon": "bi-person-badge",
         "target_url": "receptionist_dashboard",
     },
@@ -40,9 +34,6 @@ ROLE_CONFIGS = {
         "subtitle": "Doctor rosters, department management, billing overview, assessment & operational analytics",
         "badge": "Hospital Admin Access",
         "badge_color": "primary",
-        "demo_email": "apollo.admin@medisaas.com",
-        "demo_password": "AdminPass@123",
-        "demo_name": "Apollo Life Care Administrator",
         "icon": "bi-building-gear",
         "target_url": "hospital_admin_dashboard",
     },
@@ -54,9 +45,6 @@ ROLE_CONFIGS = {
         "subtitle": "Multi-hospital SaaS governance, subscription plans, tenant health & global audit trail",
         "badge": "Super Admin Access",
         "badge_color": "danger",
-        "demo_email": "superadmin@medisaas.com",
-        "demo_password": "SuperAdminPass@123",
-        "demo_name": "Platform Super Administrator",
         "icon": "bi-shield-lock",
         "target_url": "super_admin_dashboard",
     },
@@ -68,9 +56,6 @@ ROLE_CONFIGS = {
         "subtitle": "Access your appointments, clinical records, digital prescriptions, lab reports and invoices",
         "badge": "Patient Access",
         "badge_color": "success",
-        "demo_email": "anil.kapoor@example.com",
-        "demo_password": "PatientPass@123",
-        "demo_name": "Anil Kapoor (Patient PAT-2026-0001)",
         "icon": "bi-person-heart",
         "target_url": "patient_dashboard",
     },
@@ -82,9 +67,6 @@ ROLE_CONFIGS = {
         "subtitle": "OPD patient admissions, appointment check-ins, cashier payments and permitted hospital functions",
         "badge": "Staff Access",
         "badge_color": "warning",
-        "demo_email": "staff.demo@apollo.com",
-        "demo_password": "StaffPass@123",
-        "demo_name": "Arjun Rao (Hospital Staff)",
         "icon": "bi-people",
         "target_url": "staff_dashboard",
     },
@@ -93,14 +75,21 @@ ROLE_CONFIGS = {
 
 def _authenticate_and_login(request, email, password):
     """Authenticate user with email/username and log them in."""
+    from accounts.models import User as AppUser
     user = authenticate(request, username=email, password=password)
     if user is None:
-        from accounts.models import User as AppUser
         try:
             db_user = AppUser.objects.get(email=email)
             user = authenticate(request, username=db_user.username, password=password)
+            if user is None and db_user.check_password(password) and not db_user.is_active:
+                return db_user
         except AppUser.DoesNotExist:
-            user = None
+            try:
+                db_user = AppUser.objects.get(username=email)
+                if db_user.check_password(password) and not db_user.is_active:
+                    return db_user
+            except AppUser.DoesNotExist:
+                user = None
     return user
 
 
@@ -128,24 +117,7 @@ def _role_login(request, role_slug, template):
         if _role_key_for_user(request.user) == role_info["role_key"]:
             return redirect(role_info["target_url"])
 
-    # Handle 1-click demo login
-    if request.method == "POST" and request.POST.get("quick_demo") == "1":
-        cfg = ROLE_CONFIGS.get(role_slug)
-        if cfg:
-            user = _authenticate_and_login(request, cfg["demo_email"], cfg["demo_password"])
-            if user and user.is_active and _role_key_for_user(user) == cfg["role_key"]:
-                login(request, user)
-                messages.success(request, f"Signed in as {cfg['demo_name']}.")
-                return redirect(cfg["target_url"])
-            messages.error(
-                request,
-                "The demo account is unavailable or has the wrong role. Run `python manage.py seed_demo_data` and try again.",
-            )
-
     if request.method == "POST":
-        if request.POST.get("quick_demo") == "1":
-            return render(request, template, {"role_info": role_info})
-
         email = request.POST.get("email", "").strip().lower()
         password = request.POST.get("password", "")
 

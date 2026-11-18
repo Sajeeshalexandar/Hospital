@@ -178,14 +178,6 @@
       color: #ffffff;
     }
 
-    .demo-box {
-      background: #f8fafc;
-      border: 1px dashed #cbd5e1;
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 24px;
-    }
-
     .quick-roles-pills {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -292,28 +284,7 @@
           </a>
         </div>
         <h1 class="form-title">Sign In</h1>
-        <p class="form-subtitle">Enter your registered credentials or launch demo session.</p>
-
-        <!-- 1-Click Demo Login Box -->
-        <div class="demo-box">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <span class="fw-bold" style="font-size: 13px; color: #1e293b;">
-              <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Quick Demo Access
-            </span>
-            <span class="badge bg-light text-dark border">{{ role_info.demo_name }}</span>
-          </div>
-          <div class="small text-muted mb-3 font-monospace" style="font-size: 12px;">
-            <code>{{ role_info.demo_email }}</code> &bull; <code>••••••••</code>
-          </div>
-          <form method="post" action="">
-            {% csrf_token %}
-            <input type="hidden" name="quick_demo" value="1">
-            <input type="hidden" name="demo_role" value="{{ role_info.slug }}">
-            <button type="submit" class="btn btn-sm btn-outline-primary w-100 rounded-pill fw-semibold">
-              <i class="bi bi-box-arrow-in-right me-1"></i> 1-Click Launch Demo {{ role_info.badge }}
-            </button>
-          </form>
-        </div>
+        <p class="form-subtitle">Enter your registered credentials to access your secure workspace.</p>
 
       {% else %}
         <!-- Universal Role Selector Tabs -->
@@ -389,8 +360,7 @@
               id="id_email"
               name="email"
               class="form-control"
-              placeholder="{% if role_info %}{{ role_info.demo_email }}{% else %}name@hospital.com{% endif %}"
-              value="{% if role_info %}{{ role_info.demo_email }}{% endif %}"
+              placeholder="name@hospital.com"
               required
               autofocus
             />
@@ -407,7 +377,6 @@
               name="password"
               class="form-control"
               placeholder="••••••••"
-              value="{% if role_info %}{{ role_info.demo_password }}{% endif %}"
               required
             />
           </div>

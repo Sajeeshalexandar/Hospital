@@ -606,15 +606,15 @@
     </div>
   </section>
 
-  <!-- ── Hospital Administration & Staff Portals Gateway ────────────── -->
+  <!-- ── Enterprise Role Portals & Workspaces Gateway ────────────── -->
   <section class="py-5 bg-light" id="admin-portals">
     <div class="container">
       
       <div class="text-center mb-5">
-        <span class="badge bg-dark text-white px-3 py-2 rounded-pill font-semibold">Enterprise Role-Based Access Control</span>
-        <h2 class="fw-bold mt-2 text-dark">Role-Based Portals & Authentication Gateway</h2>
+        <span class="badge bg-primary text-white px-3 py-2 rounded-pill font-semibold">Enterprise Role-Based Access Control</span>
+        <h2 class="fw-bold mt-2 text-dark">Dedicated Hospital Workspaces & Portals</h2>
         <p class="text-muted max-w-2xl mx-auto">
-          Dedicated, isolated dashboards with strictly enforced backend permissions for each clinical and administrative role. Test each portal with the dummy credentials below.
+          Tailored clinical, operational, and governance workspaces with strictly enforced backend permissions and multi-tenant data isolation.
         </p>
       </div>
 
@@ -624,25 +624,20 @@
         <div class="col-md-6 col-lg-4">
           <div class="portal-launch-card">
             <div class="d-flex align-items-center justify-content-between mb-3">
-              <span class="badge bg-danger-subtle text-danger px-3 py-1 rounded-pill fw-semibold">Full Platform Access</span>
+              <span class="badge bg-danger-subtle text-danger px-3 py-1 rounded-pill fw-semibold">Platform Governance</span>
               <div class="rounded-3 p-2 bg-danger-subtle text-danger">
                 <i class="bi bi-shield-lock fs-5"></i>
               </div>
             </div>
             <h5 class="fw-bold text-dark mb-1">Super Admin</h5>
-            <div class="text-muted small mb-2">Platform Governance & Global Config</div>
-            <p class="text-muted small mb-3 flex-grow-1">
-              Manages multi-tenant hospitals, subscription pricing plans, hospital interface templates, roles, and platform audit compliance.
+            <div class="text-muted small mb-2">Platform Control & Multi-Tenancy</div>
+            <p class="text-muted small mb-4 flex-grow-1">
+              Oversees multi-hospital tenants, subscription billing plans, hospital interface templates, and global audit compliance.
             </p>
-            
-            <div class="bg-light p-2 rounded-3 border mb-3 small font-monospace">
-              <div><strong class="text-dark">Email:</strong> superadmin@medisaas.com</div>
-              <div><strong class="text-dark">Password:</strong> SuperAdminPass@123</div>
-            </div>
 
             <div class="mt-auto">
               <a href="{% url 'super_admin_login' %}" class="btn btn-outline-danger w-100 rounded-pill fw-bold">
-                <i class="bi bi-box-arrow-in-right me-1"></i> Super Admin Login
+                <i class="bi bi-box-arrow-in-right me-1"></i> Super Admin Workspace
               </a>
             </div>
           </div>
@@ -652,25 +647,20 @@
         <div class="col-md-6 col-lg-4">
           <div class="portal-launch-card">
             <div class="d-flex align-items-center justify-content-between mb-3">
-              <span class="badge bg-primary-subtle text-primary px-3 py-1 rounded-pill fw-semibold">Hospital Full Management</span>
+              <span class="badge bg-primary-subtle text-primary px-3 py-1 rounded-pill fw-semibold">Hospital Operations</span>
               <div class="rounded-3 p-2 bg-primary-subtle text-primary">
                 <i class="bi bi-building-gear fs-5"></i>
               </div>
             </div>
             <h5 class="fw-bold text-dark mb-1">Hospital Admin</h5>
-            <div class="text-muted small mb-2">Hospital Operations & Resource Oversight</div>
-            <p class="text-muted small mb-3 flex-grow-1">
-              Manages hospital profile, departments, doctor roster, staff accounts, doctor commission %, billing invoices, and clinical analytics.
+            <div class="text-muted small mb-2">Facility & Resource Administration</div>
+            <p class="text-muted small mb-4 flex-grow-1">
+              Manages hospital profile, clinical departments, doctor rosters, staff accounts, doctor commission %, billing, and executive analytics.
             </p>
-            
-            <div class="bg-light p-2 rounded-3 border mb-3 small font-monospace">
-              <div><strong class="text-dark">Email:</strong> apollo.admin@medisaas.com</div>
-              <div><strong class="text-dark">Password:</strong> AdminPass@123</div>
-            </div>
 
             <div class="mt-auto">
               <a href="{% url 'hospital_admin_login' %}" class="btn btn-outline-primary w-100 rounded-pill fw-bold">
-                <i class="bi bi-box-arrow-in-right me-1"></i> Hospital Admin Login
+                <i class="bi bi-box-arrow-in-right me-1"></i> Hospital Admin Console
               </a>
             </div>
           </div>
@@ -680,25 +670,20 @@
         <div class="col-md-6 col-lg-4">
           <div class="portal-launch-card">
             <div class="d-flex align-items-center justify-content-between mb-3">
-              <span class="badge bg-info-subtle text-info px-3 py-1 rounded-pill fw-semibold">Clinical & Assigned Appointments</span>
+              <span class="badge bg-info-subtle text-info px-3 py-1 rounded-pill fw-semibold">Clinical Workspace</span>
               <div class="rounded-3 p-2 bg-info-subtle text-info">
                 <i class="bi bi-stethoscope fs-5"></i>
               </div>
             </div>
             <h5 class="fw-bold text-dark mb-1">Doctor Portal</h5>
-            <div class="text-muted small mb-2">Clinical Care & Patient Consultations</div>
-            <p class="text-muted small mb-3 flex-grow-1">
-              Manages assigned appointments queue, diagnosis, clinical notes, digital prescriptions, medicine dosages, and lab reports.
+            <div class="text-muted small mb-2">Patient Consultations & Diagnostics</div>
+            <p class="text-muted small mb-4 flex-grow-1">
+              Provides real-time appointment queues, clinical diagnoses, treatment notes, digital e-prescriptions, and diagnostic lab orders.
             </p>
-            
-            <div class="bg-light p-2 rounded-3 border mb-3 small font-monospace">
-              <div><strong class="text-dark">Email:</strong> dr.ramesh@apollo.com</div>
-              <div><strong class="text-dark">Password:</strong> DoctorPass@123</div>
-            </div>
 
             <div class="mt-auto">
               <a href="{% url 'doctor_login' %}" class="btn btn-outline-info w-100 rounded-pill fw-bold text-dark">
-                <i class="bi bi-box-arrow-in-right me-1"></i> Doctor Login
+                <i class="bi bi-box-arrow-in-right me-1"></i> Doctor Workspace
               </a>
             </div>
           </div>
@@ -708,21 +693,16 @@
         <div class="col-md-6 col-lg-6">
           <div class="portal-launch-card">
             <div class="d-flex align-items-center justify-content-between mb-3">
-              <span class="badge bg-warning-subtle text-warning px-3 py-1 rounded-pill fw-semibold">Assigned Hospital Functions</span>
+              <span class="badge bg-warning-subtle text-warning px-3 py-1 rounded-pill fw-semibold">Front Desk & Operations</span>
               <div class="rounded-3 p-2 bg-warning-subtle text-warning">
                 <i class="bi bi-person-badge fs-5"></i>
               </div>
             </div>
-            <h5 class="fw-bold text-dark mb-1">Hospital Staff / Receptionist</h5>
-            <div class="text-muted small mb-2">Front Desk & Permitted Operations</div>
-            <p class="text-muted small mb-3 flex-grow-1">
-              OPD patient registrations, appointment check-ins, front desk admissions, cashier payment collections, and permitted hospital records.
+            <h5 class="fw-bold text-dark mb-1">Front Desk & Hospital Staff</h5>
+            <div class="text-muted small mb-2">Admissions, Scheduling & Cashier Desk</div>
+            <p class="text-muted small mb-4 flex-grow-1">
+              Streamlines OPD patient check-ins, appointment scheduling, front desk registrations, invoice cashier payments, and permitted duties.
             </p>
-            
-            <div class="bg-light p-2 rounded-3 border mb-3 small font-monospace">
-              <div><strong class="text-dark">Email:</strong> staff.demo@apollo.com</div>
-              <div><strong class="text-dark">Password:</strong> StaffPass@123</div>
-            </div>
 
             <div class="mt-auto d-flex gap-2">
               <a href="{% url 'receptionist_login' %}" class="btn btn-outline-warning text-dark flex-grow-1 rounded-pill fw-bold">
@@ -739,25 +719,20 @@
         <div class="col-md-6 col-lg-6">
           <div class="portal-launch-card">
             <div class="d-flex align-items-center justify-content-between mb-3">
-              <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill fw-semibold">Own Personal & Healthcare Data</span>
+              <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill fw-semibold">Patient Self-Service</span>
               <div class="rounded-3 p-2 bg-success-subtle text-success">
                 <i class="bi bi-person-heart fs-5"></i>
               </div>
             </div>
-            <h5 class="fw-bold text-dark mb-1">Patient Portal (Authenticated)</h5>
-            <div class="text-muted small mb-2">Self-Service Healthcare Records</div>
-            <p class="text-muted small mb-3 flex-grow-1">
-              Authenticated patients can view their profile, scheduled appointments, clinical records, prescriptions, diagnostic lab reports, invoices, and notifications.
+            <h5 class="fw-bold text-dark mb-1">Patient Health Portal</h5>
+            <div class="text-muted small mb-2">Personal Electronic Health Records</div>
+            <p class="text-muted small mb-4 flex-grow-1">
+              Enables patients to review upcoming visits, view digital prescriptions, download verified lab reports, inspect billing receipts, and manage notifications.
             </p>
-            
-            <div class="bg-light p-2 rounded-3 border mb-3 small font-monospace">
-              <div><strong class="text-dark">Email:</strong> anil.kapoor@example.com</div>
-              <div><strong class="text-dark">Password:</strong> PatientPass@123</div>
-            </div>
 
             <div class="mt-auto">
               <a href="{% url 'patient_login' %}" class="btn btn-outline-success w-100 rounded-pill fw-bold">
-                <i class="bi bi-box-arrow-in-right me-1"></i> Patient Portal Login
+                <i class="bi bi-box-arrow-in-right me-1"></i> Patient Portal Sign In
               </a>
             </div>
           </div>
@@ -765,9 +740,9 @@
 
       </div>
 
-      <div class="text-center mt-4">
-        <a href="{% url 'portals_gateway' %}" class="text-decoration-none small text-muted fw-semibold">
-          View full portal credentials matrix, module permissions & Django AdminSite endpoints <i class="bi bi-arrow-right"></i>
+      <div class="text-center mt-5">
+        <a href="{% url 'portals_gateway' %}" class="btn btn-light border px-4 py-2 rounded-pill small text-dark fw-semibold shadow-sm">
+          <i class="bi bi-grid-fill text-primary me-2"></i> Browse Enterprise Role Portal Directory & Access Gateway <i class="bi bi-arrow-right ms-1"></i>
         </a>
       </div>
 
