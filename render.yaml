@@ -2,6 +2,7 @@ services:
   - type: web
     name: hospital-management-saas
     runtime: python
+    region: ohio
     plan: free
     buildCommand: bash website/build.sh
     startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
@@ -11,12 +12,4 @@ services:
       - key: DEBUG
         value: "False"
       - key: DATABASE_URL
-        fromDatabase:
-          name: hospital-management-db
-          property: connectionString
-
-databases:
-  - name: hospital-management-db
-    plan: free
-    databaseName: hospital_management
-    user: hospital_management
+        sync: false

@@ -18,6 +18,12 @@ The application is a server-rendered Django hospital-management SaaS. It has a p
 - `patient_portal` exists as a Django package but is not in `INSTALLED_APPS`; its models file is empty and it is not the active portal implementation. The active public portal routes are in `website`.
 - There is no separate REST API, payment-gateway integration, email/SMS delivery integration, or pharmacy inventory module in the current implementation.
 
+### Moving the current SQLite data to Render PostgreSQL
+
+The Django settings use `DATABASE_URL` when present and otherwise point to the local `db.sqlite3`, so no schema change is needed for the transfer. The Render Blueprint connects to the existing PostgreSQL database through a manually supplied `DATABASE_URL`; it does not provision another database. Deploy the web service in Ohio, matching the database region, and use the database's internal URL for the service. To transfer data to a new, empty PostgreSQL database, run `scripts/transfer_sqlite_to_render.ps1` locally from PowerShell. It uses Django fixtures with natural foreign keys, preserving project primary keys and relationships, connects to the Render database using its external URL over TLS, checks that the target has no application rows, and loads the SQLite records. The script excludes content types, generated permissions, and sessions because the destination migrations create permissions and old browser sessions should not be carried over.
+
+The transfer is one-time and only for an empty target. Back up `db.sqlite3` securely before running it; never commit the fixture or database URL. The fixture is ignored by Git and removed after successful import. The transfer does not include media files under `media/`, which require a separate move to persistent object storage. Refer to the Render deployment and data-transfer steps in `README.md`.
+
 ## 3. Roles and access control
 
 The implemented application has **six role types**, although the README's role table describes only four.

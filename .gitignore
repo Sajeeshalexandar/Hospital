@@ -13,6 +13,9 @@ ENV/
 *.sqlite3
 db.sqlite3
 
+# Temporary exports can contain patient and account data.
+.local-data-transfer/
+
 # Media & User Uploads
 media/
 media/*
