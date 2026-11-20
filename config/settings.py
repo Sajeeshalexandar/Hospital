@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,11 +22,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
+render_hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+secret_key = os.environ.get("SECRET_KEY")
+if render_hostname and not secret_key:
+    raise ImproperlyConfigured("SECRET_KEY must be set for Render deployments.")
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY", "temporary-local-key")
+SECRET_KEY = secret_key or "temporary-local-key"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+DEBUG = os.environ.get("DEBUG", "False").lower() in {"true", "1", "yes"}
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 ALLOWED_HOSTS.extend(
@@ -33,8 +39,6 @@ ALLOWED_HOSTS.extend(
     for host in os.environ.get("ALLOWED_HOSTS", "").split(",")
     if host.strip()
 )
-
-render_hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 
 if render_hostname and render_hostname not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(render_hostname)
@@ -171,18 +175,10 @@ STORAGES = {
 }
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = not DEBUG and bool(render_hostname)
+SECURE_HSTS_SECONDS = 31_536_000 if not DEBUG and render_hostname else 0
 SESSION_COOKIE_SECURE = not DEBUG and bool(render_hostname)
 CSRF_COOKIE_SECURE = not DEBUG and bool(render_hostname)
-
-
-# Email
-# https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
-
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
 
 
 AUTH_USER_MODEL = 'accounts.User'
